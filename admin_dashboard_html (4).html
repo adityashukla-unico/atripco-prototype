@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Admin Panel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#0F172A;color:#F1F5F9;display:flex;min-height:100vh;font-size:14px;}
+#sidebar{width:228px;flex-shrink:0;background:#0B1120;border-right:1px solid #1E293B;display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow-y:auto;}
+.sb-logo{padding:22px 20px 16px;border-bottom:1px solid #1E293B;display:flex;align-items:center;gap:10px;}
+.sb-logo-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6C63FF,#3B82F6);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sb-logo-text{font-size:14px;font-weight:800;}.sb-logo-sub{font-size:10px;color:#64748B;margin-top:1px;}
+.sb-top{padding:12px 12px 4px;}.sb-flat{padding:4px 12px;}.sb-grouped{padding:0 12px;flex:1;}
+.sb-group-label{font-size:10px;font-weight:700;color:#64748B;letter-spacing:1px;text-transform:uppercase;padding:0 8px 6px;margin-top:18px;display:block;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;margin-bottom:2px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+.nav-item:hover{background:#6C63FF15;}.nav-item.active{background:#6C63FF22;border-left-color:#6C63FF;}
+.nav-item .ni-icon{font-size:15px;flex-shrink:0;}
+.nav-item .ni-label{font-size:13px;font-weight:500;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nav-item.active .ni-label{font-weight:700;color:#F1F5F9;}
+.sb-footer{padding:14px 16px;border-top:1px solid #1E293B;display:flex;align-items:center;gap:10px;margin-top:auto;}
+.sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C63FF,#06B6D4);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
+.sb-user-name{font-size:12px;font-weight:700;}.sb-user-email{font-size:10px;color:#64748B;}
+#main{flex:1;padding:24px 28px;overflow-y:auto;min-width:0;}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #1E293B;}
+.topbar-title{font-size:20px;font-weight:800;}.topbar-date{color:#64748B;font-size:13px;margin-top:2px;}
+.topbar-right{display:flex;gap:10px;align-items:center;}
+.btn-bell{background:#1E293B;color:#94A3B8;border:1px solid #334155;border-radius:10px;padding:8px 12px;font-size:16px;cursor:pointer;position:relative;}
+.bell-dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#EF4444;border:2px solid #0F172A;}
+.btn-primary{background:#6C63FF;color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 0 20px #6C63FF44;}
+/* ── SHARED ── */
+.kpi-row{display:flex;gap:12px;margin-bottom:20px;}
+.kpi-card{background:#1E293B;border-radius:14px;padding:18px 20px;border:1px solid #334155;flex:1;}
+.kpi-label{color:#64748B;font-size:12px;margin-bottom:6px;}.kpi-value{color:#F1F5F9;font-size:26px;font-weight:800;}.kpi-sub{font-size:12px;margin-top:4px;}
+.kpi-inner{display:flex;justify-content:space-between;align-items:flex-start;}.kpi-icon{border-radius:10px;padding:10px;font-size:20px;}
+.row{display:flex;gap:16px;margin-bottom:20px;}
+.card{background:#1E293B;border-radius:16px;padding:20px;border:1px solid #334155;}
+.card-title{color:#F1F5F9;font-weight:700;font-size:15px;}.card-sub{color:#64748B;font-size:12px;margin-top:2px;margin-bottom:14px;}
+.rev-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.tab-group{display:flex;gap:6px;background:#0F172A;border-radius:10px;padding:4px;}
+.tab-btn{font-size:11px;font-weight:700;padding:5px 12px;border-radius:7px;cursor:pointer;border:none;transition:all .2s;}
+.tab-btn.active{background:#6C63FF;color:#fff;}.tab-btn:not(.active){background:#334155;color:#94A3B8;}
+.credit-section{background:#1E293B;border-radius:16px;padding:20px 24px;border:1px solid #334155;margin-bottom:20px;}
+.credit-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.credit-legend{display:flex;gap:14px;font-size:11px;color:#94A3B8;align-items:center;}
+.legend-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:4px;}.legend-line{width:2px;height:13px;display:inline-block;margin-right:4px;background:#F59E0B;}
+.credit-row-item{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.cr-name{width:130px;font-size:13px;flex-shrink:0;}
+.cr-track{flex:1;height:10px;background:#334155;border-radius:99px;position:relative;overflow:hidden;}
+.cr-fill{height:100%;border-radius:99px;}.cr-threshold{position:absolute;left:80%;top:0;width:2px;height:100%;background:#F59E0B;z-index:2;}
+.cr-pct{width:44px;text-align:right;font-size:13px;font-weight:800;flex-shrink:0;}.cr-amt{width:140px;text-align:right;font-size:12px;color:#64748B;flex-shrink:0;}
+.teaser{margin-top:14px;padding-top:10px;border-top:1px dashed #334155;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:#64748B;font-size:13px;}
+.teaser-link{color:#6C63FF;font-weight:600;}
+.btn-view-all{font-size:12px;color:#6C63FF;background:#6C63FF15;border:1px solid #6C63FF33;border-radius:8px;padding:5px 12px;font-weight:700;cursor:pointer;}
+.donut-legend{display:flex;justify-content:center;gap:20px;margin-top:8px;}
+.dleg{display:flex;align-items:center;gap:6px;font-size:12px;}.dleg-dot{width:10px;height:10px;border-radius:50%;}
+.dash-inv-table{width:100%;border-collapse:collapse;}
+.dash-inv-table th{text-align:left;padding:0 0 10px;font-size:12px;font-weight:600;color:#64748B;}
+.dash-inv-table td{padding:10px 0;font-size:13px;border-top:1px solid #334155;}
+.dash-inv-table tr:first-child td{border-top:none;}
+.badge{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;}
+.btn-send{background:#6C63FF22;color:#6C63FF;border:none;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;}
+/* ── PAGE TABS ── */
+.page-tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid #334155;}
+.page-tab{padding:10px 22px;font-size:13px;font-weight:600;color:#64748B;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;}
+.page-tab:hover{color:#F1F5F9;}.page-tab.active{color:#6C63FF;border-bottom-color:#6C63FF;}
+/* ── FILTER BAR ── */
+.filter-bar-wrap{background:#1E293B;border-radius:12px;border:1px solid #334155;padding:12px 16px;margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.filter-search{flex:2;min-width:200px;background:#0F172A;border:1px solid #334155;border-radius:9px;padding:8px 14px;color:#F1F5F9;font-size:13px;outline:none;font-family:inherit;}
+.filter-search::placeholder{color:#334155;}.filter-search:focus{border-color:#6C63FF55;}
+.fsel{background:#0F172A;border:1px solid #334155;border-radius:9px;padding:7px 11px;color:#F1F5F9;font-size:12px;outline:none;cursor:pointer;font-family:inherit;flex:1;min-width:120px;}
+.filter-divider{width:1px;height:24px;background:#334155;flex-shrink:0;}
+.service-pills{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.svc-pill{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #334155;background:#0F172A;color:#94A3B8;transition:all .15s;white-space:nowrap;}
+.svc-pill.active{font-weight:700;}
+.btn-reset{font-size:12px;color:#94A3B8;background:transparent;border:1px solid #334155;border-radius:9px;padding:7px 14px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+/* ── ORDERS ── */
+.ord-kpi-row{display:flex;gap:12px;margin-bottom:20px;}
+.ord-kpi{background:#1E293B;border-radius:14px;padding:16px 18px;border:1px solid #334155;flex:1;cursor:pointer;}
+.ord-kpi:hover{border-color:#6C63FF55;}.ord-kpi-label{font-size:11px;color:#64748B;margin-bottom:6px;}.ord-kpi-value{font-size:22px;font-weight:800;}.ord-kpi-sub{font-size:11px;margin-top:3px;}
+.tbl-outer{background:#1E293B;border-radius:16px;border:1px solid #334155;overflow:hidden;}
+.tbl-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #334155;}
+.tbl-scroll{overflow-x:auto;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;padding:11px 14px;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;background:#0B1120;border-bottom:1px solid #334155;white-space:nowrap;}
+.data-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid #1E293B;vertical-align:middle;}
+.data-table tbody tr:last-child td{border-bottom:none;}
+.data-table tbody tr{cursor:pointer;}.data-table tbody tr:hover td{background:#6C63FF08;}
+.cell-delayed{background:#EF444415 !important;color:#EF4444 !important;font-weight:700;}
+.cell-muted{font-size:12px;color:#94A3B8;}
+.ord-id{color:#6C63FF;font-weight:700;font-family:monospace;}
+.status-badge{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap;}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid #334155;}
+.page-info{font-size:13px;color:#64748B;}.page-btns{display:flex;gap:5px;}
+.page-btn{background:#0F172A;border:1px solid #334155;color:#94A3B8;border-radius:7px;padding:5px 11px;font-size:13px;cursor:pointer;font-family:inherit;}
+.page-btn.active{background:#6C63FF;border-color:#6C63FF;color:#fff;}
+.page-btn:hover:not(.active):not(:disabled){border-color:#6C63FF55;color:#6C63FF;}.page-btn:disabled{opacity:.4;cursor:not-allowed;}
+/* ── ORDER DETAIL ── */
+.detail-topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #334155;}
+.detail-breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;color:#64748B;}
+.detail-bc-link{cursor:pointer;color:#6C63FF;}.detail-bc-link:hover{text-decoration:underline;}
+.detail-order-id{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.detail-actions{display:flex;gap:8px;flex-shrink:0;margin-top:4px;}
+.btn-outline{background:transparent;border:1px solid #334155;color:#94A3B8;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-outline:hover{border-color:#6C63FF;color:#6C63FF;}
+.btn-outline-danger{background:transparent;border:1px solid #EF444440;color:#EF4444;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+.btn-update{background:#6C63FF;color:#fff;border:none;border-radius:9px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;}
+.detail-summary-row{display:flex;gap:12px;margin-bottom:20px;}
+.detail-summary-card{background:#1E293B;border-radius:12px;padding:14px 18px;border:1px solid #334155;flex:1;}
+.ds-label{font-size:11px;color:#64748B;margin-bottom:5px;}.ds-value{font-size:16px;font-weight:800;}.ds-sub{font-size:11px;color:#64748B;margin-top:3px;}
+.detail-body{display:flex;gap:16px;align-items:flex-start;}
+.detail-left{flex:1.55;display:flex;flex-direction:column;gap:16px;}.detail-right{flex:1;display:flex;flex-direction:column;gap:16px;}
+.d-card{background:#1E293B;border-radius:14px;padding:18px 20px;border:1px solid #334155;}
+.d-card-title{font-size:13px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;}
+.route-card{background:#1E293B;border-radius:14px;border:1px solid #334155;overflow:hidden;}
+.route-leg{padding:16px 20px;}.route-leg+.route-leg{border-top:1px solid #334155;}
+.route-leg-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+.route-leg-addr{font-size:14px;font-weight:700;margin-bottom:2px;}.route-leg-detail{font-size:12px;color:#64748B;margin-bottom:6px;}
+.route-leg-meta{display:flex;gap:16px;flex-wrap:wrap;}
+.route-meta-item{display:flex;flex-direction:column;gap:2px;}.route-meta-key{font-size:10px;color:#64748B;}.route-meta-val{font-size:13px;font-weight:600;}
+.route-connector{display:flex;align-items:center;padding:6px 20px;background:#0F172A;gap:10px;}
+.route-connector-line{flex:1;height:1px;background:#334155;}.route-connector-text{font-size:11px;color:#64748B;white-space:nowrap;}
+.dl-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1E293B;}
+.dl-row:last-child{border-bottom:none;}.dl-key{font-size:12px;color:#64748B;}.dl-val{font-size:13px;font-weight:600;text-align:right;}
+.piece-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#0F172A;border-radius:8px;margin-bottom:8px;}
+.piece-badge{background:#6C63FF22;color:#6C63FF;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;}
+.accessorial-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.acc-chip{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;}
+.acc-chip.auto{background:#6C63FF22;color:#6C63FF;border:1px solid #6C63FF33;}.acc-chip.selected{background:#22C55E22;color:#22C55E;border:1px solid #22C55E33;}
+.pricing-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1E293B;}
+.pricing-row:last-child{border-bottom:none;}.pricing-key{font-size:13px;color:#94A3B8;}.pricing-val{font-size:13px;font-weight:600;}
+.pricing-total{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#6C63FF15;border-radius:10px;margin-top:10px;border:1px solid #6C63FF33;}
+.pricing-total-key{font-size:14px;font-weight:700;}.pricing-total-val{font-size:18px;font-weight:800;color:#6C63FF;}
+.tl-step{display:flex;gap:14px;}.tl-left{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0;}
+.tl-dot-outer{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tl-vline{width:2px;flex:1;min-height:24px;margin:2px 0;}.tl-content{flex:1;padding-bottom:20px;}
+.tl-status{font-size:13px;font-weight:600;margin-bottom:2px;}.tl-meta{font-size:11px;color:#64748B;}
+.activity-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #1E293B;}.activity-row:last-child{border-bottom:none;}
+.activity-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:2px;}
+.doc-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1E293B;}.doc-row:last-child{border-bottom:none;}
+.doc-info{display:flex;align-items:center;gap:10px;}
+.doc-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.doc-name{font-size:13px;font-weight:600;}.doc-meta{font-size:11px;color:#64748B;}
+.btn-dl{background:#334155;color:#94A3B8;border:none;border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer;}
+.driver-card-inner{display:flex;align-items:center;gap:12px;padding:12px;background:#0F172A;border-radius:10px;margin-bottom:12px;}
+.driver-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;}
+.skill-chip{display:inline-flex;align-items:center;gap:4px;background:#F59E0B22;color:#F59E0B;border:1px solid #F59E0B33;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;margin:2px;}
+/* ── CUSTOMERS ── */
+.cust-tbl{width:100%;border-collapse:collapse;}
+.cust-tbl th{text-align:left;padding:11px 16px;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;background:#0B1120;border-bottom:1px solid #334155;white-space:nowrap;}
+.cust-tbl td{padding:13px 16px;font-size:13px;border-bottom:1px solid #1E293B;vertical-align:middle;}
+.cust-tbl tbody tr:last-child td{border-bottom:none;}.cust-tbl tbody tr{cursor:pointer;}.cust-tbl tbody tr:hover td{background:#6C63FF08;}
+.stat-approved{background:#22C55E22;color:#22C55E;border:1px solid #22C55E44;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.stat-pending{background:#F59E0B22;color:#F59E0B;border:1px solid #F59E0B44;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.stat-rejected{background:#EF444422;color:#EF4444;border:1px solid #EF444444;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.stat-onhold{background:#F9731622;color:#F97316;border:1px solid #F9731644;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.billing-cycle-pill{background:#334155;color:#94A3B8;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;}
+.type-pill{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;}
+/* ── CUSTOMER DETAIL ── */
+.cd-tab-bar{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid #334155;}
+.cd-tab{padding:10px 20px;font-size:13px;font-weight:600;color:#64748B;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.cd-tab:hover{color:#F1F5F9;}.cd-tab.active{color:#6C63FF;border-bottom-color:#6C63FF;}
+.acct-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.acct-field{padding:13px 0;border-bottom:1px solid #1E293B;}
+.acct-field:nth-child(odd){padding-right:28px;}
+.acct-field:nth-child(even){padding-left:28px;border-left:1px solid #1E293B;}
+.acct-section-hdr{grid-column:1/-1;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.6px;padding:18px 0 8px;border-bottom:1px solid #334155;}
+.acct-label{font-size:11px;color:#64748B;margin-bottom:5px;}.acct-value{font-size:14px;font-weight:600;}.acct-muted{font-size:14px;color:#64748B;}
+/* ── CREDIT ── */
+.cred-kpi-row{display:flex;gap:12px;margin-bottom:20px;}
+.cred-kpi{background:#0F172A;border-radius:12px;padding:16px 20px;border:1px solid #334155;flex:1;}
+.cred-kpi-label{font-size:11px;color:#64748B;margin-bottom:6px;}.cred-kpi-value{font-size:22px;font-weight:800;}.cred-kpi-sub{font-size:11px;margin-top:4px;}
+.cred-bar-wrap{margin-top:10px;height:8px;background:#334155;border-radius:99px;overflow:hidden;position:relative;}
+.cred-bar-fill{height:100%;border-radius:99px;}.cred-bar-thr{position:absolute;left:80%;top:0;width:2px;height:100%;background:#F59E0B;}
+.hist-wrap{background:#0F172A;border-radius:12px;border:1px solid #334155;overflow:hidden;}
+.hist-tbl{width:100%;border-collapse:collapse;}
+.hist-tbl th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #334155;}
+.hist-tbl td{padding:12px 14px;font-size:13px;border-bottom:1px solid #1E293B;vertical-align:middle;}
+.hist-tbl tr:last-child td{border-bottom:none;}
+.inv-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.inv-chip{background:#6C63FF22;color:#6C63FF;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:600;}
+/* ── INVOICES ── */
+.inv-kpi-row{display:flex;gap:12px;margin-bottom:20px;}
+.inv-kpi{background:#1E293B;border-radius:14px;padding:16px 18px;border:1px solid #334155;flex:1;}
+.inv-kpi-label{font-size:11px;color:#64748B;margin-bottom:6px;}.inv-kpi-value{font-size:22px;font-weight:800;}.inv-kpi-sub{font-size:11px;margin-top:3px;}
+.inv-status-paid{background:#22C55E22;color:#22C55E;border:1px solid #22C55E44;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.inv-status-pending{background:#F59E0B22;color:#F59E0B;border:1px solid #F59E0B44;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.inv-status-overdue{background:#EF444422;color:#EF4444;border:1px solid #EF444444;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.inv-status-disputed{background:#8B5CF622;color:#8B5CF6;border:1px solid #8B5CF644;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.inv-status-partial{background:#06B6D422;color:#06B6D4;border:1px solid #06B6D444;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.btn-view-inv{background:#6C63FF22;color:#6C63FF;border:1px solid #6C63FF33;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.btn-dl-inv{background:#334155;color:#94A3B8;border:none;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.btn-dl-inv:hover{color:#F1F5F9;}
+.ord-tag{background:#0F172A;color:#6C63FF;border:1px solid #6C63FF33;border-radius:5px;padding:1px 6px;font-size:11px;font-weight:600;font-family:monospace;display:inline-block;margin:1px;}
+/* ── USER MANAGEMENT ── */
+.usr-kpi-row{display:flex;gap:12px;margin-bottom:20px;}
+.usr-kpi{background:#1E293B;border-radius:14px;padding:16px 18px;border:1px solid #334155;flex:1;cursor:pointer;transition:border-color .2s;}
+.usr-kpi:hover{border-color:#6C63FF55;}
+.usr-kpi-label{font-size:11px;color:#64748B;margin-bottom:6px;}.usr-kpi-value{font-size:22px;font-weight:800;}.usr-kpi-sub{font-size:11px;margin-top:3px;}
+.role-badge{border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;white-space:nowrap;}
+.usr-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
+.usr-status-active{background:#22C55E22;color:#22C55E;border:1px solid #22C55E44;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.usr-status-inactive{background:#64748B22;color:#64748B;border:1px solid #64748B44;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.role-pill-select{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.role-pill-opt{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid transparent;background:#0F172A;color:#94A3B8;transition:all .15s;white-space:nowrap;}
+.role-pill-opt.selected{color:#fff;}
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);}
+.modal-box{position:relative;background:#1E293B;border:1px solid #334155;border-radius:20px;padding:28px 32px;width:min(900px,94vw);max-height:86vh;overflow-y:auto;z-index:1;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+.modal-title{font-size:17px;font-weight:800;}
+.modal-close{background:#334155;color:#94A3B8;border:none;border-radius:8px;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mpill{border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:4px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}.form-group.full{grid-column:1/-1;}
+.form-label{font-size:12px;font-weight:600;color:#94A3B8;}
+.form-input,.form-select,.form-textarea{background:#0F172A;border:1px solid #334155;border-radius:9px;padding:10px 14px;color:#F1F5F9;font-size:13px;outline:none;font-family:inherit;transition:border-color .2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#6C63FF;}
+.form-input::placeholder,.form-textarea::placeholder{color:#334155;}
+.form-textarea{resize:vertical;min-height:70px;}
+.form-section-title{font-size:13px;font-weight:700;color:#F1F5F9;margin:18px 0 12px;padding-bottom:8px;border-bottom:1px solid #334155;}
+.form-optional-divider{grid-column:1/-1;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.6px;padding-top:14px;padding-bottom:6px;border-top:1px dashed #334155;margin-top:8px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #334155;}
+.btn-cancel-modal{background:#334155;color:#94A3B8;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-submit{background:#6C63FF;color:#fff;border:none;border-radius:10px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-approve{background:#22C55E22;color:#22C55E;border:1px solid #22C55E44;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;margin-right:4px;}
+.btn-reject{background:#EF444422;color:#EF4444;border:1px solid #EF444444;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;}
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px;text-align:center;}
+.placeholder-icon{font-size:56px;}.placeholder-title{font-size:22px;font-weight:800;}.placeholder-sub{font-size:14px;color:#64748B;}
+.placeholder-tag{background:#6C63FF22;color:#6C63FF;border:1px solid #6C63FF44;border-radius:10px;padding:8px 20px;font-size:13px;font-weight:600;}
+.empty-state{text-align:center;padding:50px 20px;color:#64748B;}
+select,input{font-family:inherit;}
+</style>
+</head>
+<body>
+<div id="sidebar">
+  <div class="sb-logo"><div class="sb-logo-icon">⚡</div><div><div class="sb-logo-text">AdminPanel</div><div class="sb-logo-sub">Super Admin</div></div></div>
+  <div class="sb-top" id="sb-top"></div>
+  <div class="sb-flat" id="sb-flat"></div>
+  <div class="sb-grouped" id="sb-grouped"></div>
+  <div class="sb-footer"><div class="sb-avatar">A</div><div style="flex:1;overflow:hidden;"><div class="sb-user-name">Admin User</div><div class="sb-user-email">admin@company.in</div></div><span style="font-size:14px;cursor:pointer;color:#64748B;">↩</span></div>
+</div>
+<div id="main">
+  <div class="topbar">
+    <div><div class="topbar-title" id="page-title">⊞ Dashboard</div><div class="topbar-date">Friday, 20 March 2026</div></div>
+    <div class="topbar-right"><button class="btn-bell">🔔<span class="bell-dot"></span></button><button class="btn-primary" id="topbar-cta" onclick="handleCTA()">+ Create Order</button></div>
+  </div>
+  <div id="page-content"></div>
+</div>
+
+<!-- Dashboard credit modal -->
+<div class="modal-overlay" id="modal-credit"><div class="modal-bg" onclick="closeModal('modal-credit')"></div><div class="modal-box"><div class="modal-head"><div class="modal-title">💳 All Client Credit Utilization</div><button class="modal-close" onclick="closeModal('modal-credit')">×</button></div><div style="display:flex;gap:8px;margin-bottom:18px;"><span class="mpill" style="background:#EF444422;color:#EF4444;border:1px solid #EF444444;" id="cr-pill-breach"></span><span class="mpill" style="background:#22C55E22;color:#22C55E;border:1px solid #22C55E44;" id="cr-pill-safe"></span></div><div id="modal-credit-rows"></div></div></div>
+
+<!-- Dashboard invoices modal -->
+<div class="modal-overlay" id="modal-dash-invoices"><div class="modal-bg" onclick="closeModal('modal-dash-invoices')"></div><div class="modal-box"><div class="modal-head"><div class="modal-title">🧾 All Invoices</div><button class="modal-close" onclick="closeModal('modal-dash-invoices')">×</button></div><div style="display:flex;gap:8px;margin-bottom:18px;"><span class="mpill" style="background:#EF444422;color:#EF4444;border:1px solid #EF444444;">🚨 1 Critical</span><span class="mpill" style="background:#F59E0B22;color:#F59E0B;border:1px solid #F59E0B44;">⚠️ 2 Warning</span><span class="mpill" style="background:#22C55E22;color:#22C55E;border:1px solid #22C55E44;">✅ 5 On Track</span></div><table style="width:100%;border-collapse:collapse;" id="modal-dash-inv-body"></table></div></div>
+
+<!-- Add Order -->
+<div class="modal-overlay" id="modal-add-order"><div class="modal-bg" onclick="closeModal('modal-add-order')"></div>
+<div class="modal-box" style="width:min(700px,94vw)">
+  <div class="modal-head"><div class="modal-title">📦 Add New Order</div><button class="modal-close" onclick="closeModal('modal-add-order')">×</button></div>
+  <div class="form-section-title">Client & Service</div>
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">Company *</label><select class="form-select"><option value="">Select…</option><option>Nexus Retail</option><option>Apex Logistics</option><option>BlueWave Co.</option><option>Sunrise Mart</option><option>Delta Foods</option></select></div>
+    <div class="form-group"><label class="form-label">Order Type *</label><select class="form-select"><option>On-Demand Courier</option><option>On-Demand Truck</option><option>Bulk / Distribution</option><option>Scheduled</option></select></div>
+    <div class="form-group"><label class="form-label">Service Level *</label><select class="form-select"><option>Emergency (90 min)</option><option>Rush (3hr)</option><option>Non-Rush (5hr)</option><option>Same Day</option><option>Next Day</option></select></div>
+    <div class="form-group"><label class="form-label">Vehicle *</label><select class="form-select"><option>2-Wheeler</option><option>Car</option><option>Minivan</option><option>Mini Truck</option><option>Full Truck</option><option>Refrigerated Van</option></select></div>
+    <div class="form-group"><label class="form-label">Amount (₹) *</label><input class="form-input" type="number" placeholder="e.g. 15000"/></div>
+    <div class="form-group"><label class="form-label">Assign Driver</label><select class="form-select"><option value="">Auto-assign</option><option>Rajesh Kumar</option><option>Priya Sharma</option></select></div>
+  </div>
+  <div class="form-section-title">Pickup</div>
+  <div class="form-grid">
+    <div class="form-group full"><label class="form-label">Address *</label><input class="form-input" placeholder="Street, Area"/></div>
+    <div class="form-group"><label class="form-label">Postal *</label><input class="form-input" placeholder="400001"/></div>
+    <div class="form-group"><label class="form-label">City *</label><input class="form-input" placeholder="Mumbai"/></div>
+    <div class="form-group"><label class="form-label">Date & Time *</label><input class="form-input" type="datetime-local"/></div>
+    <div class="form-group"><label class="form-label">Contact</label><input class="form-input" placeholder="Name"/></div>
+  </div>
+  <div class="form-section-title">Delivery</div>
+  <div class="form-grid">
+    <div class="form-group full"><label class="form-label">Address *</label><input class="form-input" placeholder="Street, Area"/></div>
+    <div class="form-group"><label class="form-label">Postal *</label><input class="form-input" placeholder="400051"/></div>
+    <div class="form-group"><label class="form-label">City *</label><input class="form-input" placeholder="Mumbai"/></div>
+    <div class="form-group"><label class="form-label">Consignee *</label><input class="form-input" placeholder="Recipient name"/></div>
+    <div class="form-group"><label class="form-label">Phone</label><input class="form-input" type="tel" placeholder="+91 XXXXX XXXXX"/></div>
+  </div>
+  <div class="modal-footer"><button class="btn-cancel-modal" onclick="closeModal('modal-add-order')">Cancel</button><button class="btn-submit">Create Order →</button></div>
+</div></div>
+
+<!-- Create Account -->
+<div class="modal-overlay" id="modal-create-account"><div class="modal-bg" onclick="closeModal('modal-create-account')"></div>
+<div class="modal-box" style="width:min(700px,94vw)">
+  <div class="modal-head"><div class="modal-title">🏢 Create New Account</div><button class="modal-close" onclick="closeModal('modal-create-account')">×</button></div>
+  <div class="form-section-title">Company</div>
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">Company Name *</label><input class="form-input" placeholder="Legal name"/></div>
+    <div class="form-group"><label class="form-label">Tenant *</label><select class="form-select"><option value="">Select…</option><option>Swift</option><option>Atripco</option></select></div>
+    <div class="form-group full"><label class="form-label">Billing Address *</label><input class="form-input" placeholder="Full billing address"/></div>
+  </div>
+  <div class="form-section-title">Primary Contact</div>
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">Name *</label><input class="form-input" placeholder="Full name"/></div>
+    <div class="form-group"><label class="form-label">Email *</label><input class="form-input" type="email" placeholder="contact@company.com"/></div>
+    <div class="form-group"><label class="form-label">Phone *</label><input class="form-input" type="tel" placeholder="+91 XXXXX XXXXX"/></div>
+  </div>
+  <div class="form-section-title">Credit & Billing</div>
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">Credit Limit (₹) *</label><input class="form-input" type="number" placeholder="500000"/></div>
+    <div class="form-group"><label class="form-label">Payment Terms *</label><select class="form-select"><option value="">Select…</option><option>Net 7</option><option>Net 15</option><option>Net 30</option><option>Net 45</option><option>Net 60</option></select></div>
+    <div class="form-group"><label class="form-label">Billing Cycle *</label><select class="form-select"><option value="">Select…</option><option>Weekly</option><option>Semi-Monthly (15th & last day)</option><option>Monthly</option><option>Custom</option></select></div>
+    <div class="form-group"><label class="form-label">Default Service *</label><select class="form-select"><option value="">Select…</option><option>Standard</option><option>Non-Rush (4hr)</option><option>Rush (2hr)</option><option>Same Day</option></select></div>
+    <div class="form-optional-divider">Optional</div>
+    <div class="form-group"><label class="form-label">Tax ID / GST</label><input class="form-input" placeholder="27AABCN…"/></div>
+    <div class="form-group"><label class="form-label">Alt Billing Email</label><input class="form-input" type="email" placeholder="billing@company.com"/></div>
+    <div class="form-group full"><label class="form-label">Special Billing Instructions</label><textarea class="form-textarea" placeholder="Any specific invoicing notes…"></textarea></div>
+  </div>
+  <div class="modal-footer"><button class="btn-cancel-modal" onclick="closeModal('modal-create-account')">Cancel</button><button class="btn-submit" onclick="closeModal('modal-create-account')">Create Account →</button></div>
+</div></div>
+
+<!-- Settle Invoices -->
+<div class="modal-overlay" id="modal-settle-invoices"><div class="modal-bg" onclick="closeModal('modal-settle-invoices')"></div>
+<div class="modal-box" style="width:min(540px,94vw)">
+  <div class="modal-head"><div class="modal-title">💳 Settle Invoices & Reset Credit</div><button class="modal-close" onclick="closeModal('modal-settle-invoices')">×</button></div>
+  <p style="font-size:13px;color:#94A3B8;margin-bottom:20px;">Recording a payment reduces credit utilised by the payment amount. One payment can settle multiple invoices.</p>
+  <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+    <div class="form-group"><label class="form-label">Payment Amount (₹) *</label><input class="form-input" id="rc-amount" type="number" placeholder="e.g. 100000"/></div>
+    <div class="form-group"><label class="form-label">Payment Date *</label><input class="form-input" id="rc-date" type="date"/></div>
+    <div class="form-group full"><label class="form-label">Invoice References * <span style="color:#64748B;font-weight:400;">(comma-separated)</span></label><input class="form-input" id="rc-invoices" placeholder="INV-4821, INV-4790, INV-4755"/></div>
+    <div class="form-group"><label class="form-label">Payment Method *</label><select class="form-select" id="rc-method"><option value="">Select…</option><option>Bank Transfer</option><option>Cheque</option><option>Online</option><option>Cash</option></select></div>
+    <div class="form-group"><label class="form-label">Paid By</label><input class="form-input" id="rc-paidby" placeholder="Contact name"/></div>
+    <div class="form-group full"><label class="form-label">Notes</label><textarea class="form-textarea" id="rc-notes" style="min-height:60px;" placeholder="Optional…"></textarea></div>
+  </div>
+  <div style="background:#0F172A;border-radius:10px;padding:12px 16px;margin-top:8px;font-size:13px;color:#64748B;">📎 <span style="color:#6C63FF;cursor:pointer;font-weight:600;">Attach invoice PDF</span> — optional</div>
+  <div class="modal-footer"><button class="btn-cancel-modal" onclick="closeModal('modal-settle-invoices')">Cancel</button><button class="btn-submit" onclick="submitCreditReset()">Settle & Reset Credit →</button></div>
+</div></div>
+
+<!-- Add / Edit User Modal -->
+<div class="modal-overlay" id="modal-add-user"><div class="modal-bg" onclick="closeModal('modal-add-user')"></div>
+<div class="modal-box" style="width:min(640px,94vw)">
+  <div class="modal-head"><div class="modal-title" id="usr-modal-title">👤 Add New User</div><button class="modal-close" onclick="closeModal('modal-add-user')">×</button></div>
+  <div class="form-section-title">Personal Information</div>
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="usr-fname" placeholder="First name"/></div>
+    <div class="form-group"><label class="form-label">Last Name *</label><input class="form-input" id="usr-lname" placeholder="Last name"/></div>
+    <div class="form-group"><label class="form-label">Email Address *</label><input class="form-input" id="usr-email" type="email" placeholder="user@company.com"/></div>
+    <div class="form-group"><label class="form-label">Phone Number</label><input class="form-input" id="usr-phone" type="tel" placeholder="+1 416 000 0000"/></div>
+  </div>
+  <div class="form-section-title">Role & Access</div>
+  <div class="form-group" style="margin-bottom:16px;">
+    <label class="form-label">Assign Role *</label>
+    <div class="role-pill-select" id="usr-role-pills">
+      <div class="role-pill-opt" data-role="platform_admin" style="border-color:#6C63FF;" onclick="selectUserRole('platform_admin')">Platform Admin</div>
+      <div class="role-pill-opt" data-role="finance_manager" style="border-color:#22C55E;" onclick="selectUserRole('finance_manager')">Finance Manager</div>
+      <div class="role-pill-opt" data-role="ops_dispatch" style="border-color:#3B82F6;" onclick="selectUserRole('ops_dispatch')">Operations & Dispatch</div>
+      <div class="role-pill-opt" data-role="account_admin" style="border-color:#F59E0B;" onclick="selectUserRole('account_admin')">Account Admin</div>
+      <div class="role-pill-opt" data-role="account_user" style="border-color:#06B6D4;" onclick="selectUserRole('account_user')">Account User</div>
+    </div>
+    <div id="usr-role-desc" style="font-size:12px;color:#64748B;margin-top:8px;padding:8px 12px;background:#0F172A;border-radius:8px;display:none;line-height:1.6;"></div>
+  </div>
+  <div id="usr-company-wrap" style="display:none;">
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">Assign Company *</label>
+      <select class="form-select" id="usr-company">
+        <option value="">Select company…</option>
+        <option>Nexus Retail</option><option>BlueWave Co.</option><option>Sunrise Mart</option>
+        <option>Delta Foods</option><option>Apex Logistics</option><option>Greenfield Ltd</option>
+        <option>Crest Supplies</option><option>Metro Freight</option>
+      </select>
+      <div style="font-size:11px;color:#64748B;margin-top:5px;">This user will only see data belonging to the assigned company.</div>
+    </div>
+  </div>
+  <div class="form-section-title">Account Settings</div>
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="usr-status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+    <div class="form-group"><label class="form-label">Send Invite Email</label><select class="form-select" id="usr-invite"><option value="yes">Yes — send welcome email</option><option value="no">No — set up manually</option></select></div>
+  </div>
+  <div id="usr-edit-id" style="display:none;"></div>
+  <div class="modal-footer">
+    <button class="btn-cancel-modal" onclick="closeModal('modal-add-user')">Cancel</button>
+    <button class="btn-submit" onclick="submitAddUser()">Save User →</button>
+  </div>
+</div></div>
+
+<!-- Deactivate Confirm -->
+<div class="modal-overlay" id="modal-deactivate-user"><div class="modal-bg" onclick="closeModal('modal-deactivate-user')"></div>
+<div class="modal-box" style="width:min(460px,94vw)">
+  <div class="modal-head"><div class="modal-title" id="deact-title">Deactivate User</div><button class="modal-close" onclick="closeModal('modal-deactivate-user')">×</button></div>
+  <p id="deact-desc" style="font-size:13px;color:#94A3B8;margin-bottom:18px;line-height:1.6;"></p>
+  <div class="form-group"><label class="form-label">Reason *</label><textarea class="form-textarea" id="deact-reason" placeholder="Provide a reason for this action…" style="min-height:90px;"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn-cancel-modal" onclick="closeModal('modal-deactivate-user')">Cancel</button>
+    <button class="btn-submit" id="deact-btn" style="background:#EF4444;" onclick="submitDeactivateUser()">Confirm</button>
+  </div>
+</div></div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="modal-confirm"><div class="modal-bg" onclick="closeModal('modal-confirm')"></div>
+<div class="modal-box" style="width:min(480px,94vw)">
+  <div class="modal-head"><div class="modal-title" id="confirm-title">Confirm Action</div><button class="modal-close" onclick="closeModal('modal-confirm')">×</button></div>
+  <p id="confirm-desc" style="font-size:13px;color:#94A3B8;margin-bottom:18px;line-height:1.6;"></p>
+  <div class="form-group"><label class="form-label">Reason / Comment <span style="color:#EF4444;">*</span></label><textarea class="form-textarea" id="confirm-reason" placeholder="Please provide a reason…" style="min-height:100px;"></textarea></div>
+  <div class="modal-footer"><button class="btn-cancel-modal" onclick="closeModal('modal-confirm')">Cancel</button><button class="btn-submit" id="confirm-action-btn" onclick="submitConfirmAction()">Confirm</button></div>
+</div></div>
+
+<!-- Bulk Download Invoices -->
+<div class="modal-overlay" id="modal-bulk-download"><div class="modal-bg" onclick="closeModal('modal-bulk-download')"></div>
+<div class="modal-box" style="width:min(580px,94vw)">
+  <div class="modal-head"><div class="modal-title">⬇ Bulk Download Invoices</div><button class="modal-close" onclick="closeModal('modal-bulk-download')">×</button></div>
+  <p style="font-size:13px;color:#94A3B8;margin-bottom:20px;">Apply filters below to select which invoices to download. Matched invoices will open in print-ready tabs for PDF export.</p>
+  <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+    <div class="form-group"><label class="form-label">Invoice Date — From</label><input class="form-input" id="bd-date-from" type="date" onchange="updateBulkPreview()"/></div>
+    <div class="form-group"><label class="form-label">Invoice Date — To</label><input class="form-input" id="bd-date-to" type="date" onchange="updateBulkPreview()"/></div>
+    <div class="form-group"><label class="form-label">Invoice Status</label>
+      <select class="form-select" id="bd-status" onchange="updateBulkPreview()">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option><option value="paid">Paid</option>
+        <option value="overdue">Overdue</option><option value="partial">Partially Paid</option>
+        <option value="disputed">Disputed</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Client</label>
+      <select class="form-select" id="bd-client" onchange="updateBulkPreview()">
+        <option value="">All Clients</option>
+        <option>Apex Logistics</option><option>Nexus Retail</option><option>BlueWave Co.</option>
+        <option>Delta Foods</option><option>Sunrise Mart</option><option>Crest Supplies</option>
+        <option>Metro Freight</option><option>Greenfield Ltd</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:16px;margin-bottom:6px;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;">Preview</div>
+  <div id="bd-preview"></div>
+  <div class="modal-footer">
+    <button class="btn-cancel-modal" onclick="closeModal('modal-bulk-download')">Cancel</button>
+    <button class="btn-submit" id="bd-download-btn" onclick="executeBulkDownload()">⬇ Download All</button>
+  </div>
+</div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════
+const NAV=[
+  {id:"dashboard",label:"Dashboard",icon:"⊞",group:"top"},
+  {id:"orders",label:"Orders",icon:"📦",group:"flat"},
+  {id:"drivers",label:"Drivers",icon:"🚚",group:"flat"},
+  {id:"customers",label:"Customer Management",icon:"🏢",group:"flat"},
+  {id:"invoices",label:"Invoices",icon:"🧾",group:"flat"},
+  {id:"reports",label:"Reports",icon:"📊",group:"Insights"},
+  {id:"notifications",label:"Notifications",icon:"🔔",group:"Insights"},
+  {id:"users",label:"User Management",icon:"👥",group:"Admin"},
+  {id:"audit",label:"Audit Log",icon:"📋",group:"Admin"},
+  {id:"integrations",label:"Integration Manual",icon:"🔗",group:"Admin"},
+  {id:"pricing",label:"Pricing Configurations",icon:"💰",group:"Admin"},
+  {id:"config",label:"System Configurations",icon:"⚙️",group:"Admin"},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOMER DATA
+// ═══════════════════════════════════════════════════════════════
+const APPROVED_CUSTOMERS=[
+  {id:"C-1035",accountId:"ACC-1035",company:"Nexus Retail",tenant:"Swift",contact:{name:"Vijay Rao",email:"vijay@nexus.com",phone:"+91 98765 43210"},creditLimit:500000,creditUsed:445000,billingAddress:"14, Veera Desai Rd, Andheri West, Mumbai 400053",billingCycle:"Monthly",paymentTerms:"Net 30",defaultService:"Standard",taxId:"27AABCN1234F1Z5",altEmail:"billing@nexus.com",specialInstructions:"",approvedOn:"Mar 9, 2026",type:"Enterprise",creditHistory:[{id:"CHR-004",date:"Mar 15, 2026",amount:50000,invoices:["INV-4650","INV-4610"],method:"Bank Transfer",paidBy:"Vijay Rao",notes:"March partial"},{id:"CHR-003",date:"Feb 28, 2026",amount:100000,invoices:["INV-4580"],method:"Online",paidBy:"Vijay Rao",notes:"Feb settlement"}]},
+  {id:"C-1034",accountId:"ACC-1034",company:"BlueWave Co.",tenant:"Swift",contact:{name:"Sneha Patil",email:"sneha@bluewave.in",phone:"+91 91234 56789"},creditLimit:300000,creditUsed:276000,billingAddress:"88, Worli Sea Face, Worli, Mumbai 400018",billingCycle:"Semi-Monthly (15th & last day)",paymentTerms:"Net 15",defaultService:"Same-Day",taxId:"27XYZBC5678G1Z3",altEmail:"",specialInstructions:"Invoices before 5th",approvedOn:"Mar 7, 2026",type:"SMB",creditHistory:[{id:"CHR-002",date:"Mar 1, 2026",amount:75000,invoices:["INV-4560"],method:"Cheque",paidBy:"Sneha Patil",notes:""}]},
+  {id:"C-1033",accountId:"ACC-1033",company:"Sunrise Mart",tenant:"Atripco",contact:{name:"Rajan Iyer",email:"rajan@sunrisemart.in",phone:"+91 99887 66554"},creditLimit:400000,creditUsed:320000,billingAddress:"215, SV Rd, Goregaon West, Mumbai 400063",billingCycle:"Monthly",paymentTerms:"Net 30",defaultService:"Rush (2hr)",taxId:"",altEmail:"accounts@sunrisemart.in",specialInstructions:"",approvedOn:"Mar 5, 2026",type:"SMB",creditHistory:[]},
+  {id:"C-1032",accountId:"ACC-1032",company:"Delta Foods",tenant:"Swift",contact:{name:"Meera Krishnan",email:"meera@deltafoods.co",phone:"+91 88776 55443"},creditLimit:250000,creditUsed:187500,billingAddress:"Plot 45, MIDC, Kurla West, Mumbai 400070",billingCycle:"Weekly",paymentTerms:"Net 7",defaultService:"Non-Rush (4hr)",taxId:"27DFPLC9876H2Z1",altEmail:"",specialInstructions:"Cold chain invoices need separate PO",approvedOn:"Mar 3, 2026",type:"Startup",creditHistory:[{id:"CHR-001",date:"Feb 20, 2026",amount:30000,invoices:["INV-4490"],method:"Bank Transfer",paidBy:"Meera Krishnan",notes:"Initial payment"}]},
+  {id:"C-1031",accountId:"ACC-1031",company:"Apex Logistics",tenant:"Atripco",contact:{name:"Arjun Singh",email:"arjun@apexlog.com",phone:"+91 77665 44332"},creditLimit:600000,creditUsed:558000,billingAddress:"Plot 12, MIDC, Andheri East, Mumbai 400076",billingCycle:"Semi-Monthly (15th & last day)",paymentTerms:"Net 45",defaultService:"Standard",taxId:"27APLCS2345J1Z8",altEmail:"finance@apexlog.com",specialInstructions:"",approvedOn:"Feb 28, 2026",type:"Enterprise",creditHistory:[{id:"CHR-006",date:"Mar 10, 2026",amount:200000,invoices:["INV-4570","INV-4530"],method:"Bank Transfer",paidBy:"Arjun Singh",notes:"Bulk settlement"}]},
+  {id:"C-1030",accountId:"ACC-1030",company:"Greenfield Ltd",tenant:"Swift",contact:{name:"Anita Sharma",email:"anita@greenfield.in",phone:"+91 66554 33221"},creditLimit:350000,creditUsed:259000,billingAddress:"Vashi Industrial Estate, Navi Mumbai 400703",billingCycle:"Monthly",paymentTerms:"Net 30",defaultService:"Scheduled",taxId:"",altEmail:"",specialInstructions:"All invoices must include PO number",approvedOn:"Feb 25, 2026",type:"SMB",creditHistory:[]},
+  {id:"C-1029",accountId:"ACC-1029",company:"Crest Supplies",tenant:"Swift",contact:{name:"Deepak Menon",email:"deepak@crestsup.com",phone:"+91 55443 22110"},creditLimit:450000,creditUsed:382500,billingAddress:"Kandivali Industrial Estate, Mumbai 400067",billingCycle:"Monthly",paymentTerms:"Net 30",defaultService:"Standard",taxId:"27CSPLC6789K1Z2",altEmail:"billing@crestsup.com",specialInstructions:"",approvedOn:"Feb 22, 2026",type:"Enterprise",creditHistory:[{id:"CHR-005",date:"Mar 5, 2026",amount:100000,invoices:["INV-4540","INV-4500"],method:"Online",paidBy:"Deepak Menon",notes:"Monthly payment"}]},
+  {id:"C-1028",accountId:"ACC-1028",company:"Metro Freight",tenant:"Atripco",contact:{name:"Lakshmi Nair",email:"lnair@metrofreight.in",phone:"+91 44332 11009"},creditLimit:500000,creditUsed:375000,billingAddress:"Sewri Cross Rd, Wadala, Mumbai 400015",billingCycle:"Custom",paymentTerms:"Net 60",defaultService:"On-Demand Truck",taxId:"27MFPLC1234L1Z5",altEmail:"",specialInstructions:"Billing contact changes quarterly",approvedOn:"Feb 19, 2026",type:"SMB",creditHistory:[]},
+  {id:"C-1027",accountId:"ACC-1027",company:"Swift Carriers",tenant:"Swift",contact:{name:"Rahul Verma",email:"rahul@swiftcarriers.in",phone:"+91 99001 12345"},creditLimit:180000,creditUsed:180000,billingAddress:"Malad West, Mumbai 400064",billingCycle:"Monthly",paymentTerms:"Net 30",defaultService:"Standard",taxId:"",altEmail:"",specialInstructions:"Account on hold",approvedOn:"Jan 15, 2026",type:"SMB",creditHistory:[]},
+];
+const PENDING_CUSTOMERS=[
+  {id:"C-1041",accountId:"ACC-1041",company:"Starline Pvt Ltd",contact:{name:"Rohan Mehta",email:"rohan@starline.in",phone:"+91 98123 45001"},submitted:"Mar 18, 2026",type:"Enterprise",billingAddress:"Andheri East, Mumbai",creditRequested:400000},
+  {id:"C-1040",accountId:"ACC-1040",company:"Kiran Foods",contact:{name:"Kiran Desai",email:"kiran@kiranfoods.com",phone:"+91 87012 34002"},submitted:"Mar 17, 2026",type:"SMB",billingAddress:"Goregaon, Mumbai",creditRequested:150000},
+  {id:"C-1039",accountId:"ACC-1039",company:"Veloce Logistics",contact:{name:"Priya Nair",email:"priya@veloce.io",phone:"+91 76901 23003"},submitted:"Mar 15, 2026",type:"Enterprise",billingAddress:"BKC, Mumbai",creditRequested:500000},
+  {id:"C-1038",accountId:"ACC-1038",company:"QuickCart India",contact:{name:"Amit Shah",email:"amit@quickcart.in",phone:"+91 65890 12004"},submitted:"Mar 14, 2026",type:"Startup",billingAddress:"Powai, Mumbai",creditRequested:100000},
+  {id:"C-1037",accountId:"ACC-1037",company:"Bharat Cold Chain",contact:{name:"Suresh Kumar",email:"suresh@bharatcc.com",phone:"+91 54789 01005"},submitted:"Mar 12, 2026",type:"SMB",billingAddress:"Navi Mumbai",creditRequested:250000},
+  {id:"C-1036",accountId:"ACC-1036",company:"Optima Retail",contact:{name:"Neha Joshi",email:"neha@optimaretail.in",phone:"+91 43678 90006"},submitted:"Mar 10, 2026",type:"Enterprise",billingAddress:"Thane West",creditRequested:600000},
+];
+const REJECTED_CUSTOMERS=[
+  {id:"C-1025",accountId:"ACC-1025",company:"FastTrack India",contact:{name:"Anil Sharma",email:"anil@fasttrack.in",phone:"+91 98765 00001"},rejectedOn:"Feb 10, 2026",type:"SMB",billingAddress:"Dadar, Mumbai",reason:"Insufficient credit history"},
+  {id:"C-1022",accountId:"ACC-1022",company:"Skyline Movers",contact:{name:"Rina Das",email:"rina@skylinemov.in",phone:"+91 87654 00002"},rejectedOn:"Jan 28, 2026",type:"Startup",billingAddress:"Borivali, Mumbai",reason:"Incomplete documentation"},
+  {id:"C-1019",accountId:"ACC-1019",company:"PrimeExpress Co.",contact:{name:"Mahesh Kulkarni",email:"mahesh@primeexp.com",phone:"+91 76543 00003"},rejectedOn:"Jan 15, 2026",type:"SMB",billingAddress:"Pune",reason:"High-risk credit profile"},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// INVOICE DATA
+// ═══════════════════════════════════════════════════════════════
+const INVOICES=[
+  {invoiceNumber:"INV-183292",accountNumber:"ACC-1031",client:"Apex Logistics",invoiceDate:"Jan 23, 2026",invoiceDateRaw:"2026-01-23",dueDate:"Feb 22, 2026",dueDateRaw:"2026-02-22",totalShipments:70,baseCharges:4318.70,discounts:0,taxRate:13,taxAmount:561.45,totalDue:4880.15,status:"overdue",currency:"CAD",tenant:"Atripco",billingPeriod:"Jan 16–23, 2026",paymentTerms:"Net 30",orderIds:["ORD-9040","ORD-9031"],orders:[{no:"13198489",shipDate:"Jan 16, 2026",service:"STOP ON ROUTE",from:"LG Canada, 20 Norelco Dr, Toronto ON",to:"Jaeyoon Choo, 18 Steeles Ave E, Thornhill ON",delivered:"Jan 17, 2026 10:42AM",pod:"5/4",base:0,tax:0,subtotal:0},{no:"13205237",shipDate:"Jan 19, 2026",service:"SCHEDULED RUNS",from:"LG Canada, 20 Norelco Dr, Toronto ON",to:"SCHEDULED DAILY RUN, VARIOUS LOCATIONS",delivered:"Jan 19, 2026 7:59PM",pod:"dropped 1",base:618.20,tax:80.37,subtotal:698.57}]},
+  {invoiceNumber:"INV-183105",accountNumber:"ACC-1035",client:"Nexus Retail",invoiceDate:"Mar 1, 2026",invoiceDateRaw:"2026-03-01",dueDate:"Mar 31, 2026",dueDateRaw:"2026-03-31",totalShipments:45,baseCharges:2840.00,discounts:0,taxRate:13,taxAmount:369.20,totalDue:3209.20,status:"pending",currency:"CAD",tenant:"Swift",billingPeriod:"Feb 16–28, 2026",paymentTerms:"Net 30",orderIds:["ORD-9041","ORD-9023"],orders:[{no:"ORD-9041",shipDate:"Mar 20, 2026",service:"Rush (2hr)",from:"14 Veera Desai Rd, Mumbai",to:"88 Turner Rd, Mumbai",delivered:"Mar 20, 2026 11:30AM",pod:"Signed",base:850,tax:280,subtotal:1130}]},
+  {invoiceNumber:"INV-183088",accountNumber:"ACC-1034",client:"BlueWave Co.",invoiceDate:"Feb 28, 2026",invoiceDateRaw:"2026-02-28",dueDate:"Mar 14, 2026",dueDateRaw:"2026-03-14",totalShipments:28,baseCharges:1650.00,discounts:0,taxRate:13,taxAmount:214.50,totalDue:1864.50,status:"overdue",currency:"CAD",tenant:"Swift",billingPeriod:"Feb 15–28, 2026",paymentTerms:"Net 15",orderIds:["ORD-9039","ORD-9030"],orders:[]},
+  {invoiceNumber:"INV-183021",accountNumber:"ACC-1032",client:"Delta Foods",invoiceDate:"Feb 7, 2026",invoiceDateRaw:"2026-02-07",dueDate:"Feb 14, 2026",dueDateRaw:"2026-02-14",totalShipments:19,baseCharges:980.00,discounts:0,taxRate:13,taxAmount:127.40,totalDue:1107.40,status:"paid",currency:"CAD",tenant:"Swift",billingPeriod:"Feb 1–7, 2026",paymentTerms:"Net 7",orderIds:["ORD-9037","ORD-9029"],orders:[]},
+  {invoiceNumber:"INV-182998",accountNumber:"ACC-1031",client:"Apex Logistics",invoiceDate:"Jan 30, 2026",invoiceDateRaw:"2026-01-30",dueDate:"Mar 15, 2026",dueDateRaw:"2026-03-15",totalShipments:62,baseCharges:3720.00,discounts:150,taxRate:13,taxAmount:463.71,totalDue:4033.71,status:"paid",currency:"CAD",tenant:"Atripco",billingPeriod:"Jan 24–30, 2026",paymentTerms:"Net 45",orderIds:["ORD-9040"],orders:[]},
+  {invoiceNumber:"INV-182944",accountNumber:"ACC-1033",client:"Sunrise Mart",invoiceDate:"Feb 28, 2026",invoiceDateRaw:"2026-02-28",dueDate:"Mar 30, 2026",dueDateRaw:"2026-03-30",totalShipments:33,baseCharges:2100.00,discounts:0,taxRate:13,taxAmount:273.00,totalDue:2373.00,status:"disputed",currency:"CAD",tenant:"Atripco",billingPeriod:"Feb 15–28, 2026",paymentTerms:"Net 30",orderIds:["ORD-9038"],orders:[]},
+  {invoiceNumber:"INV-182890",accountNumber:"ACC-1029",client:"Crest Supplies",invoiceDate:"Mar 1, 2026",invoiceDateRaw:"2026-03-01",dueDate:"Mar 31, 2026",dueDateRaw:"2026-03-31",totalShipments:41,baseCharges:2460.00,discounts:0,taxRate:13,taxAmount:319.80,totalDue:2779.80,status:"pending",currency:"CAD",tenant:"Swift",billingPeriod:"Feb 16–28, 2026",paymentTerms:"Net 30",orderIds:["ORD-9035","ORD-9026"],orders:[]},
+  {invoiceNumber:"INV-182801",accountNumber:"ACC-1028",client:"Metro Freight",invoiceDate:"Jan 31, 2026",invoiceDateRaw:"2026-01-31",dueDate:"Mar 31, 2026",dueDateRaw:"2026-03-31",totalShipments:88,baseCharges:8200.00,discounts:200,taxRate:13,taxAmount:1040.00,totalDue:9040.00,status:"partial",currency:"CAD",tenant:"Atripco",billingPeriod:"Jan 16–31, 2026",paymentTerms:"Net 60",orderIds:["ORD-9034","ORD-9027"],orders:[]},
+  {invoiceNumber:"INV-182755",accountNumber:"ACC-1030",client:"Greenfield Ltd",invoiceDate:"Feb 28, 2026",invoiceDateRaw:"2026-02-28",dueDate:"Mar 30, 2026",dueDateRaw:"2026-03-30",totalShipments:22,baseCharges:1320.00,discounts:0,taxRate:13,taxAmount:171.60,totalDue:1491.60,status:"paid",currency:"CAD",tenant:"Swift",billingPeriod:"Feb 15–28, 2026",paymentTerms:"Net 30",orderIds:["ORD-9036"],orders:[]},
+  {invoiceNumber:"INV-182699",accountNumber:"ACC-1032",client:"Delta Foods",invoiceDate:"Jan 31, 2026",invoiceDateRaw:"2026-01-31",dueDate:"Feb 7, 2026",dueDateRaw:"2026-02-07",totalShipments:14,baseCharges:690.00,discounts:0,taxRate:13,taxAmount:89.70,totalDue:779.70,status:"paid",currency:"CAD",tenant:"Swift",billingPeriod:"Jan 25–31, 2026",paymentTerms:"Net 7",orderIds:["ORD-9037"],orders:[]},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// ORDERS DATA
+// ═══════════════════════════════════════════════════════════════
+const STATUS_COLORS={"Order Confirmed":"#6C63FF","Driver Assigned":"#3B82F6","Enroute to Pickup":"#0EA5E9","Arrived at Pickup":"#8B5CF6","Picked Up":"#F59E0B","Enroute to Delivery":"#F97316","Arrived at Delivery":"#06B6D4","Completed":"#22C55E","Task Failed":"#EF4444","Cancelled":"#64748B"};
+const STATUSES=Object.keys(STATUS_COLORS);
+const VI={"2-Wheeler":"🛵","3-Wheeler":"🛺","Mini Truck":"🚐","Full Truck":"🚛","Refrigerated Van":"❄️","Car":"🚗","Minivan":"🚐"};
+const ZONES=["North Mumbai","South Mumbai","Central Mumbai","East Mumbai","West Mumbai","Navi Mumbai","Thane"];
+const SERVICES=["Standard","Non-Rush (4hr)","Rush (2hr)","Emergency 90min","Scheduled","Same-Day"];
+const SVC_COLORS={"Standard":"#94A3B8","Non-Rush (4hr)":"#22C55E","Rush (2hr)":"#F59E0B","Emergency 90min":"#EF4444","Scheduled":"#3B82F6","Same-Day":"#8B5CF6"};
+const DC=["#6C63FF","#3B82F6","#22C55E","#F59E0B","#EF4444","#06B6D4","#8B5CF6","#F97316"];
+const ALL_ORDERS=[
+  {id:"ORD-9041",company:"Nexus Retail",orderType:"On-Demand Courier",channel:"Portal",pickup:{addr:"14, Veera Desai Rd",city:"Mumbai",postal:"400053",zone:"West Mumbai",contact:"Ramesh Shetty",phone:"+91 98765 43210",residential:false},pickupDate:"Mar 20, 09:00",delivery:{addr:"88, Turner Rd",city:"Mumbai",postal:"400051",zone:"Central Mumbai",consignee:"Priya Gupta",phone:"+91 87654 32109",email:"priya@nexus.com",residential:false},deliveryDate:"Mar 20, 11:30",delayed:true,vehicle:"2-Wheeler",amount:12400,createdOn:"Mar 20, 08:45",status:"Enroute to Delivery",service:"Rush (2hr)",driver:"Rajesh Kumar",driverIdx:0,driverSkills:["Smart Serve"],priority:"High",shipment:{type:"Box",pieces:3,weight:"8 lbs",dims:"40×30×20 cm",declaredValue:15000,insurance:true},accessorials:["Fuel Surcharge","Signature Required"],pricing:{base:850,distance:180,residential:0,insurance:900,fuelSurcharge:205,tax:280,total:2415},notes:"Fragile items",trackingId:"TRK-A9041"},
+  {id:"ORD-9040",company:"Apex Logistics",orderType:"On-Demand Truck",channel:"Portal",pickup:{addr:"Plot 12, MIDC, Andheri East",city:"Mumbai",postal:"400076",zone:"East Mumbai",contact:"Suresh Mehta",phone:"+91 91234 56789",residential:false},pickupDate:"Mar 20, 08:30",delivery:{addr:"Ghodbunder Rd, Thane West",city:"Thane",postal:"400601",zone:"Thane",consignee:"Arun Patil",phone:"+91 99000 11223",email:"arun@apexlog.com",residential:false},deliveryDate:"Mar 20, 11:00",delayed:false,vehicle:"Mini Truck",amount:34200,createdOn:"Mar 20, 08:10",status:"Picked Up",service:"Standard",driver:"Priya Sharma",driverIdx:1,driverSkills:[],priority:"Normal",shipment:{type:"Skid / Pallet",pieces:6,weight:"320 lbs",dims:"120×80×100 cm",declaredValue:null,insurance:false},accessorials:["Fuel Surcharge","Tailgate Required"],pricing:{base:2800,distance:640,residential:0,insurance:0,fuelSurcharge:344,tax:494,total:4278},notes:"",trackingId:"TRK-A9040"},
+  {id:"ORD-9039",company:"BlueWave Co.",orderType:"On-Demand Courier",channel:"API",pickup:{addr:"Worli Sea Face",city:"Mumbai",postal:"400018",zone:"South Mumbai",contact:"Kavita Rao",phone:"+91 99887 66554",residential:false},pickupDate:"Mar 20, 09:30",delivery:{addr:"Sector 17, Vashi",city:"Navi Mumbai",postal:"400703",zone:"Navi Mumbai",consignee:"Mohan Das",phone:"+91 88776 55443",email:"mohan@bluewave.in",residential:true},deliveryDate:"Mar 20, 12:00",delayed:false,vehicle:"3-Wheeler",amount:8750,createdOn:"Mar 20, 09:00",status:"Driver Assigned",service:"Same-Day",driver:"Vikram Nair",driverIdx:2,driverSkills:[],priority:"Urgent",shipment:{type:"Box",pieces:1,weight:"4 lbs",dims:"30×20×15 cm",declaredValue:null,insurance:false},accessorials:["Fuel Surcharge","Inside Delivery"],pricing:{base:650,distance:220,residential:75,insurance:0,fuelSurcharge:95,tax:133,total:1173},notes:"Call before arrival",trackingId:"TRK-A9039"},
+  {id:"ORD-9037",company:"Delta Foods",orderType:"On-Demand Courier",channel:"Portal",pickup:{addr:"LBS Marg, Kurla West",city:"Mumbai",postal:"400070",zone:"East Mumbai",contact:"Neha Shah",phone:"+91 76543 21098",residential:false},pickupDate:"Mar 19, 17:00",delivery:{addr:"Dadar TT Circle",city:"Mumbai",postal:"400014",zone:"Central Mumbai",consignee:"Seema Joshi",phone:"+91 65432 10987",email:"seema@deltafoods.co",residential:false},deliveryDate:"Mar 19, 19:00",delayed:false,vehicle:"Refrigerated Van",amount:6300,createdOn:"Mar 19, 16:45",status:"Completed",service:"Non-Rush (4hr)",driver:"Suresh Iyer",driverIdx:4,driverSkills:["Refrigerated Certified"],priority:"High",shipment:{type:"Box",pieces:4,weight:"40 lbs",dims:"60×40×30 cm",declaredValue:null,insurance:false},accessorials:["Fuel Surcharge","Refrigerated Service"],pricing:{base:900,distance:140,residential:0,insurance:0,fuelSurcharge:104,tax:147,total:1291},notes:"Cold chain",trackingId:"TRK-A9037"},
+  {id:"ORD-9034",company:"Metro Freight",orderType:"On-Demand Truck",channel:"Portal",pickup:{addr:"TTC Industrial Area",city:"Navi Mumbai",postal:"400708",zone:"Navi Mumbai",contact:"Ganesh Rao",phone:"+91 88997 76655",residential:false},pickupDate:"Mar 19, 15:00",delivery:{addr:"Ghatkopar West",city:"Mumbai",postal:"400080",zone:"East Mumbai",consignee:"Sunil Fernandez",phone:"+91 77886 65544",email:"sunil@metrofreight.in",residential:false},deliveryDate:"Mar 19, 18:30",delayed:true,vehicle:"Full Truck",amount:45000,createdOn:"Mar 19, 14:30",status:"Task Failed",service:"Standard",driver:"Arjun Singh",driverIdx:7,driverSkills:["DG Certified"],priority:"High",shipment:{type:"Skid / Pallet",pieces:24,weight:"2400 lbs",dims:"Various",declaredValue:80000,insurance:true},accessorials:["Fuel Surcharge","Tailgate Required","Dangerous Goods"],pricing:{base:5200,distance:960,residential:0,insurance:4800,fuelSurcharge:609,tax:1137,total:12706},notes:"Customer not available",trackingId:"TRK-A9034"},
+  {id:"ORD-9033",company:"TechPark Pvt",orderType:"On-Demand Courier",channel:"Portal",pickup:{addr:"BKC, Bandra East",city:"Mumbai",postal:"400051",zone:"Central Mumbai",contact:"Alok Gupta",phone:"+91 77665 54433",residential:false},pickupDate:"Mar 20, 10:00",delivery:{addr:"Nariman Point",city:"Mumbai",postal:"400013",zone:"South Mumbai",consignee:"Smita Nair",phone:"+91 66554 43322",email:"smita@techpark.in",residential:false},deliveryDate:"Mar 20, 12:00",delayed:false,vehicle:"2-Wheeler",amount:5600,createdOn:"Mar 20, 09:40",status:"Arrived at Pickup",service:"Emergency 90min",driver:"Rajesh Kumar",driverIdx:0,driverSkills:["Smart Serve"],priority:"Urgent",shipment:{type:"Envelope",pieces:1,weight:"0.5 lbs",dims:"A4 flat",declaredValue:null,insurance:false},accessorials:["Fuel Surcharge","Signature Required"],pricing:{base:450,distance:80,residential:0,insurance:0,fuelSurcharge:53,tax:75,total:658},notes:"Electronics",trackingId:"TRK-A9033"},
+];
+
+// Dashboard invoice previews
+const DASH_INVOICES=[{id:"INV-4821",client:"Nexus Retail",amount:"₹1,24,000",due:"Mar 22",status:"critical"},{id:"INV-4790",client:"BlueWave Co.",amount:"₹87,500",due:"Mar 25",status:"warning"},{id:"INV-4755",client:"Sunrise Mart",amount:"₹2,10,000",due:"Mar 28",status:"warning"},{id:"INV-4730",client:"Delta Foods",amount:"₹63,000",due:"Apr 2",status:"ok"}];
+const dashInvMeta={critical:["#EF4444","Due in 2d"],warning:["#F59E0B","Due in 5-8d"],ok:["#22C55E","Due soon"]};
+
+// ═══════════════════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════════════════
+let currentPage="dashboard";
+let custTab="approved";
+let custDetailId=null;
+let custDetailTab="details";
+let custFilter={search:"",type:""};
+let ordF={search:"",company:"",status:"",vehicle:"",pickupZone:"",dropZone:"",service:"",sort:"newest",page:1};
+let invFilter={search:"",status:"all",client:""};
+const PAGE_SIZE=10;
+let revenueMode="daily";
+let activeChart1=null,activeChart2=null,activeChart3=null;
+let activeCreditResetId=null;
+let confirmState={action:null,customerId:null};
+
+const typePillColor={Enterprise:"#6C63FF",SMB:"#3B82F6",Startup:"#06B6D4"};
+function tpill(t){const c=typePillColor[t]||"#94A3B8";return `<span class="type-pill" style="background:${c}22;color:${c};border:1px solid ${c}44;">${t}</span>`;}
+
+// ═══════════════════════════════════════════════════════════════
+// SIDEBAR & ROUTING
+// ═══════════════════════════════════════════════════════════════
+function buildSidebar(){
+  document.getElementById("sb-top").innerHTML=niHTML(NAV.find(n=>n.group==="top"));
+  let flat="<div style='padding:8px 0 4px;'>";
+  NAV.filter(n=>n.group==="flat").forEach(n=>{flat+=niHTML(n);});flat+="</div>";
+  let grouped="";
+  ["Insights","Admin"].forEach(g=>{grouped+=`<span class="sb-group-label">${g}</span>`;NAV.filter(n=>n.group===g).forEach(n=>{grouped+=niHTML(n);});});
+  document.getElementById("sb-flat").innerHTML=flat;
+  document.getElementById("sb-grouped").innerHTML=grouped;
+  document.querySelectorAll(".nav-item").forEach(el=>el.addEventListener("click",()=>navigate(el.dataset.id)));
+}
+function niHTML(n){return `<div class="nav-item" data-id="${n.id}"><span class="ni-icon">${n.icon}</span><span class="ni-label">${n.label}</span></div>`;}
+function setActive(id){document.querySelectorAll(".nav-item").forEach(el=>el.classList.toggle("active",el.dataset.id===id));}
+
+function navigate(id){
+  setActive(id);currentPage=id;custDetailId=null;custFilter={search:"",type:""};
+  const item=NAV.find(n=>n.id===id);
+  document.getElementById("page-title").textContent=item.icon+" "+item.label;
+  const ctaMap={orders:"+ Add Order",customers:"+ New Account",users:"+ Add User"};
+  document.getElementById("topbar-cta").textContent=ctaMap[id]||"+ Create Order";
+  destroyCharts();
+  if(id==="dashboard") renderDashboard();
+  else if(id==="orders"){ordF={search:"",company:"",status:"",vehicle:"",pickupZone:"",dropZone:"",service:"",sort:"newest",page:1};buildOrdersPage();}
+  else if(id==="customers"){custTab="approved";renderCustomers();}
+  else if(id==="invoices"){invFilter={search:"",status:"all",client:""};buildInvoicesPage();}
+  else if(id==="users") renderUsers();
+  else document.getElementById("page-content").innerHTML=`<div class="placeholder"><div class="placeholder-icon">${item.icon}</div><div class="placeholder-title">${item.label}</div><div class="placeholder-sub">Under construction.</div><div class="placeholder-tag">Module: ${item.id}</div></div>`;
+}
+function handleCTA(){
+  if(currentPage==="customers") openModal("modal-create-account");
+  else if(currentPage==="users") openAddUser();
+  else openModal("modal-add-order");
+}
+function destroyCharts(){[activeChart1,activeChart2,activeChart3].forEach(c=>{if(c)c.destroy();});activeChart1=activeChart2=activeChart3=null;}
+function openModal(id){document.getElementById(id).classList.add("open");}
+function closeModal(id){document.getElementById(id).classList.remove("open");}
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+function crHTML(c){
+  const pct=Math.round(c.creditUsed/c.creditLimit*100),onHold=pct>=100,br=pct>=80;
+  const col=onHold?"#F97316":br?"#EF4444":"#22C55E";
+  return `<div class="credit-row-item"><div class="cr-name" style="color:${br?"#FCA5A5":"#94A3B8"};font-weight:${br?700:400};">${onHold?"🔒 ":br?"⚠️ ":""}${c.company}</div><div class="cr-track"><div class="cr-fill" style="width:${Math.min(pct,100)}%;background:${col};"></div><div class="cr-threshold"></div></div><div class="cr-pct" style="color:${col};">${pct}%</div><div class="cr-amt">₹${(c.creditUsed/1000).toFixed(0)}k / ₹${(c.creditLimit/1000).toFixed(0)}k</div></div>`;
+}
+function dashInvBadge(s){const[col,lbl]=dashInvMeta[s];return `<span class="badge" style="background:${col}22;color:${col};border:1px solid ${col}44;">${lbl}</span>`;}
+
+function populateDashModals(){
+  const sorted=[...APPROVED_CUSTOMERS].sort((a,b)=>(b.creditUsed/b.creditLimit)-(a.creditUsed/a.creditLimit));
+  const breached=sorted.filter(c=>(c.creditUsed/c.creditLimit)*100>=80);
+  document.getElementById("cr-pill-breach").textContent=`🚨 ${breached.length} Breached`;
+  document.getElementById("cr-pill-safe").textContent=`✅ ${sorted.length-breached.length} Safe`;
+  document.getElementById("modal-credit-rows").innerHTML=sorted.map(c=>crHTML(c)).join("");
+  document.getElementById("modal-dash-inv-body").innerHTML=`<thead><tr><th style="text-align:left;padding:0 0 10px;font-size:12px;font-weight:600;color:#64748B;">Invoice ID</th><th style="text-align:left;padding:0 0 10px;font-size:12px;font-weight:600;color:#64748B;">Client</th><th style="text-align:left;padding:0 0 10px;font-size:12px;font-weight:600;color:#64748B;">Amount</th><th style="text-align:left;padding:0 0 10px;font-size:12px;font-weight:600;color:#64748B;">Due</th><th style="text-align:left;padding:0 0 10px;font-size:12px;font-weight:600;color:#64748B;">Status</th><th></th></tr></thead><tbody>${DASH_INVOICES.map(inv=>`<tr><td style="padding:10px 0;font-size:13px;color:#6C63FF;font-weight:600;">${inv.id}</td><td style="padding:10px 0;font-size:13px;">${inv.client}</td><td style="padding:10px 0;font-size:13px;font-weight:700;">${inv.amount}</td><td style="padding:10px 0;font-size:13px;color:#64748B;">${inv.due}</td><td style="padding:10px 0;">${dashInvBadge(inv.status)}</td><td style="padding:10px 0;"><button class="btn-send">Send</button></td></tr>`).join("")}</tbody>`;
+}
+
+function renderDashboard(){
+  destroyCharts();
+  const sortedCredit=[...APPROVED_CUSTOMERS].sort((a,b)=>(b.creditUsed/b.creditLimit)-(a.creditUsed/a.creditLimit));
+  const breached=sortedCredit.filter(c=>(c.creditUsed/c.creditLimit)*100>=80);
+  document.getElementById("page-content").innerHTML=`
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-inner"><div><div class="kpi-label">Total Orders</div><div class="kpi-value">1,465</div><div class="kpi-sub" style="color:#22C55E;">↑ 12% vs last period</div></div><div class="kpi-icon" style="background:#22C55E22;">📦</div></div></div>
+    <div class="kpi-card"><div class="kpi-inner"><div><div class="kpi-label">Revenue (30d)</div><div class="kpi-value">₹3.32L</div><div class="kpi-sub" style="color:#6C63FF;">↑ 8.4% vs last period</div></div><div class="kpi-icon" style="background:#6C63FF22;">💰</div></div></div>
+    <div class="kpi-card"><div class="kpi-inner"><div><div class="kpi-label">Failed / Cancelled</div><div class="kpi-value">60</div><div class="kpi-sub" style="color:#EF4444;">4.1% failure rate</div></div><div class="kpi-icon" style="background:#EF444422;">⚠️</div></div></div>
+    <div style="flex:1.4;background:#1E293B;border-radius:14px;padding:16px 18px;border:1px solid #334155;">
+      <div style="font-weight:700;font-size:13px;margin-bottom:12px;">🏢 Customers Onboarded</div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;background:#0F172A;border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;border:1px solid #F59E0B44;" onclick="custTab='pending';navigate('customers')"><div style="background:#F59E0B22;border-radius:10px;padding:10px 12px;font-size:22px;">⏳</div><div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">Pending</div><div style="font-size:28px;font-weight:800;color:#F59E0B;line-height:1;">${PENDING_CUSTOMERS.length}</div><div style="font-size:11px;font-weight:600;color:#F59E0B;margin-top:4px;">Click to view →</div></div></div>
+        <div style="flex:1;background:#0F172A;border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;border:1px solid #22C55E44;" onclick="custTab='approved';navigate('customers')"><div style="background:#22C55E22;border-radius:10px;padding:10px 12px;font-size:22px;">✅</div><div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">Approved</div><div style="font-size:28px;font-weight:800;color:#22C55E;line-height:1;">${APPROVED_CUSTOMERS.length}</div><div style="font-size:11px;font-weight:600;color:#22C55E;margin-top:4px;">Click to view →</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card" style="flex:1.1;"><div class="card-title">📦 Order Status Breakdown</div><div class="card-sub">Full lifecycle — all stages</div><div style="height:290px;"><canvas id="chart-orders"></canvas></div></div>
+    <div class="card" style="flex:1.6;"><div class="rev-head"><div><div class="card-title" id="rev-title">💰 Revenue Trend (30 Days)</div><div class="card-sub" id="rev-sub">Placed vs Completed vs In Progress</div></div><div class="tab-group"><button class="tab-btn active" id="tab-daily" onclick="switchRev('daily')">30-Day</button><button class="tab-btn" id="tab-mom" onclick="switchRev('mom')">Month-on-Month</button></div></div><div id="mom-pills" style="display:none;gap:8px;margin-bottom:14px;"></div><div style="height:270px;"><canvas id="chart-revenue"></canvas></div></div>
+  </div>
+  <div class="credit-section">
+    <div class="credit-head"><div><div style="color:#F1F5F9;font-weight:700;font-size:15px;">💳 Credit Utilization — Client Wise</div><div style="color:#64748B;font-size:12px;">Showing top 5 of ${sortedCredit.length} · ${breached.length} breaching 80%</div></div>
+    <div style="display:flex;align-items:center;gap:16px;"><div class="credit-legend"><span><span class="legend-dot" style="background:#EF4444;"></span>Breached</span><span><span class="legend-dot" style="background:#22C55E;"></span>Safe</span><span><span class="legend-line"></span>80% Line</span></div><button class="btn-view-all" onclick="openModal('modal-credit')">View All ${sortedCredit.length} →</button></div></div>
+    <div>${sortedCredit.slice(0,5).map(c=>crHTML(c)).join("")}</div>
+    <div class="teaser" onclick="openModal('modal-credit')"><span>+${sortedCredit.length-5} more clients</span><span class="teaser-link">View all →</span></div>
+  </div>
+  <div class="row" style="margin-bottom:0;">
+    <div class="card" style="flex:0.7;"><div class="card-title">🚚 Delivery Performance</div><div class="card-sub">On-time vs Delayed</div><div style="height:170px;"><canvas id="chart-delivery"></canvas></div><div class="donut-legend"><div class="dleg"><div class="dleg-dot" style="background:#22C55E;"></div><span style="color:#64748B;">On Time</span>&nbsp;<strong>74%</strong></div><div class="dleg"><div class="dleg-dot" style="background:#EF4444;"></div><span style="color:#64748B;">Delayed</span>&nbsp;<strong>26%</strong></div></div></div>
+    <div class="card" style="flex:1.8;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div><div class="card-title">🧾 Invoices Approaching Due Date</div><div class="card-sub">Showing 4 of ${INVOICES.length} · sorted by urgency</div></div><button class="btn-view-all" onclick="openModal('modal-dash-invoices')">View All →</button></div>
+    <table class="dash-inv-table"><thead><tr><th>Invoice ID</th><th>Client</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${DASH_INVOICES.map(inv=>`<tr><td style="color:#6C63FF;font-weight:600;">${inv.id}</td><td>${inv.client}</td><td style="font-weight:700;">${inv.amount}</td><td style="color:#64748B;">${inv.due}</td><td>${dashInvBadge(inv.status)}</td><td><button class="btn-send">Send</button></td></tr>`).join("")}</tbody></table>
+    <div class="teaser" onclick="openModal('modal-dash-invoices')"><span>+${INVOICES.length-4} more invoices</span><span class="teaser-link">View all →</span></div></div>
+  </div>`;
+  buildCharts();
+}
+
+function buildCharts(){
+  const c1=document.getElementById("chart-orders").getContext("2d");
+  activeChart1=new Chart(c1,{type:"bar",data:{labels:["Order Confirmed","Driver Assigned","Enroute to Pickup","Arrived at Pickup","Picked Up","Enroute to Delivery","Arrived at Delivery","Task Failed","Cancelled","Completed"],datasets:[{data:[340,290,210,180,160,130,110,22,38,95],backgroundColor:["#6C63FF","#3B82F6","#0EA5E9","#8B5CF6","#F59E0B","#F97316","#06B6D4","#EF4444","#64748B","#22C55E"],borderRadius:6,barThickness:14}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} orders`}}},scales:{x:{grid:{color:"#334155"},ticks:{color:"#64748B",font:{size:10}}},y:{grid:{display:false},ticks:{color:"#64748B",font:{size:10}}}}}});
+  buildRevChart();
+  const c3=document.getElementById("chart-delivery").getContext("2d");
+  activeChart3=new Chart(c3,{type:"doughnut",data:{labels:["On Time","Delayed"],datasets:[{data:[74,26],backgroundColor:["#22C55E","#EF4444"],borderWidth:0,cutout:"68%"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw}%`}}}}});
+}
+function buildRevChart(){
+  if(activeChart2){activeChart2.destroy();activeChart2=null;}
+  const ctx=document.getElementById("chart-revenue").getContext("2d"),mp=document.getElementById("mom-pills");
+  if(revenueMode==="daily"){
+    mp.style.display="none";document.getElementById("rev-title").textContent="💰 Revenue Trend (30 Days)";document.getElementById("rev-sub").textContent="Placed vs Completed vs In Progress";
+    const gP=ctx.createLinearGradient(0,0,0,270);gP.addColorStop(0,"#6C63FF55");gP.addColorStop(1,"#6C63FF00");const gC=ctx.createLinearGradient(0,0,0,270);gC.addColorStop(0,"#22C55E55");gC.addColorStop(1,"#22C55E00");
+    activeChart2=new Chart(ctx,{type:"line",data:{labels:["Mar 1","Mar 5","Mar 9","Mar 13","Mar 17","Mar 20"],datasets:[{label:"Placed",data:[42000,55000,38000,67000,72000,58000],borderColor:"#6C63FF",backgroundColor:gP,fill:true,tension:.4,pointRadius:0,borderWidth:2},{label:"Completed",data:[38000,48000,35000,59000,61000,50000],borderColor:"#22C55E",backgroundColor:gC,fill:true,tension:.4,pointRadius:0,borderWidth:2},{label:"In Progress",data:[8000,12000,6000,15000,18000,14000],borderColor:"#F59E0B",fill:false,tension:.4,pointRadius:0,borderWidth:2,borderDash:[5,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#94A3B8",font:{size:12}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ₹${(c.raw/1000).toFixed(0)}k`}}},scales:{x:{grid:{color:"#334155"},ticks:{color:"#64748B",font:{size:11}}},y:{grid:{color:"#334155"},ticks:{color:"#64748B",font:{size:11},callback:v=>`₹${v/1000}k`}}}}});
+  } else {
+    document.getElementById("rev-title").textContent="📊 Month-on-Month Revenue";document.getElementById("rev-sub").textContent="FY 2025-26 vs FY 2024-25";
+    const months=["Oct","Nov","Dec","Jan","Feb","Mar"],ty=[210000,245000,289000,262000,310000,332000],ly=[178000,201000,230000,215000,258000,275000];
+    mp.style.display="flex";mp.innerHTML=months.map((m,i)=>{const d=(((ty[i]-ly[i])/ly[i])*100).toFixed(1),pos=d>=0,c=pos?"#22C55E":"#EF4444";return `<div style="flex:1;background:${c}15;border:1px solid ${c}33;border-radius:8px;padding:5px 6px;text-align:center;"><div style="color:#64748B;font-size:10px;">${m}</div><div style="color:${c};font-size:11px;font-weight:800;">${pos?"▲":"▼"}${Math.abs(d)}%</div></div>`;}).join("");
+    activeChart2=new Chart(ctx,{type:"bar",data:{labels:months,datasets:[{label:"FY 2025-26",data:ty,backgroundColor:"#6C63FF",borderRadius:4},{label:"FY 2024-25",data:ly,backgroundColor:"#334155",borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#94A3B8",font:{size:12}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ₹${(c.raw/1000).toFixed(0)}k`}}},scales:{x:{grid:{display:false},ticks:{color:"#64748B",font:{size:11}}},y:{grid:{color:"#334155"},ticks:{color:"#64748B",font:{size:11},callback:v=>`₹${v/1000}k`}}}}});
+  }
+}
+function switchRev(m){revenueMode=m;document.getElementById("tab-daily").classList.toggle("active",m==="daily");document.getElementById("tab-mom").classList.toggle("active",m==="mom");buildRevChart();}
+
+// ═══════════════════════════════════════════════════════════════
+// INVOICES
+// ═══════════════════════════════════════════════════════════════
+function getFilteredInvoices(){
+  let list=[...INVOICES];
+  if(invFilter.search){
+    const q=invFilter.search.toLowerCase();
+    list=list.filter(i=>i.invoiceNumber.toLowerCase().includes(q)||i.client.toLowerCase().includes(q)||i.accountNumber.toLowerCase().includes(q)||i.billingPeriod.toLowerCase().includes(q)||(i.orderIds&&i.orderIds.some(o=>o.toLowerCase().includes(q))));
+  }
+  if(invFilter.status&&invFilter.status!=="all"){
+    if(invFilter.status==="pending") list=list.filter(i=>["pending","partial","disputed"].includes(i.status));
+    else list=list.filter(i=>i.status===invFilter.status);
+  }
+  if(invFilter.client) list=list.filter(i=>i.client===invFilter.client);
+  return list;
+}
+
+function buildInvoicesPage(){
+  const all=getFilteredInvoices();
+  const pending=INVOICES.filter(i=>["pending","partial","disputed"].includes(i.status));
+  const overdue=INVOICES.filter(i=>i.status==="overdue");
+  const paid=INVOICES.filter(i=>i.status==="paid");
+  const outstandingVal=[...pending,...overdue].reduce((s,i)=>s+i.totalDue,0);
+  const clients=[...new Set(INVOICES.map(i=>i.client))].sort();
+  const hasFilter=invFilter.search||invFilter.client;
+  const clientOpts=clients.map(c=>`<option value="${c}"${invFilter.client===c?" selected":""}>${c}</option>`).join("");
+  const sMap={paid:"inv-status-paid",pending:"inv-status-pending",overdue:"inv-status-overdue",disputed:"inv-status-disputed",partial:"inv-status-partial"};
+  const sLabel={paid:"✓ Paid",pending:"⏳ Pending",overdue:"🔴 Overdue",disputed:"⚠ Disputed",partial:"◑ Partial"};
+  const tabs=[{key:"all",label:"All",count:INVOICES.length},{key:"pending",label:"Pending",count:pending.length,col:"#F59E0B"},{key:"paid",label:"Paid",count:paid.length,col:"#22C55E"},{key:"overdue",label:"Overdue",count:overdue.length,col:"#EF4444"}];
+  const tabBarHTML=tabs.map(t=>`<div class="page-tab${invFilter.status===t.key?" active":""}" onclick="invFilter.status='${t.key}';buildInvoicesPage()">${t.label}${t.count>0?`<span style="background:${invFilter.status===t.key?(t.col||"#6C63FF"):"#334155"};color:${invFilter.status===t.key?"#fff":"#94A3B8"};border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:5px;">${t.count}</span>`:""}</div>`).join("");
+
+  document.getElementById("page-content").innerHTML=`
+  <div class="inv-kpi-row">
+    <div class="inv-kpi"><div class="inv-kpi-label">Total Invoices</div><div class="inv-kpi-value" style="color:#F1F5F9;">${INVOICES.length}</div><div class="inv-kpi-sub" style="color:#64748B;">All time</div></div>
+    <div class="inv-kpi"><div class="inv-kpi-label">Pending + Overdue</div><div class="inv-kpi-value" style="color:#F59E0B;">${pending.length+overdue.length}</div><div class="inv-kpi-sub" style="color:#F59E0B;">CAD ${outstandingVal.toLocaleString('en-CA',{minimumFractionDigits:2})}</div></div>
+    <div class="inv-kpi"><div class="inv-kpi-label">Overdue</div><div class="inv-kpi-value" style="color:#EF4444;">${overdue.length}</div><div class="inv-kpi-sub" style="color:#EF4444;">Needs action</div></div>
+    <div class="inv-kpi"><div class="inv-kpi-label">Paid</div><div class="inv-kpi-value" style="color:#22C55E;">${paid.length}</div><div class="inv-kpi-sub" style="color:#22C55E;">Fully settled</div></div>
+    <div class="inv-kpi"><div class="inv-kpi-label">Disputed / Partial</div><div class="inv-kpi-value" style="color:#8B5CF6;">${INVOICES.filter(i=>["disputed","partial"].includes(i.status)).length}</div><div class="inv-kpi-sub" style="color:#8B5CF6;">Under review</div></div>
+  </div>
+  <div class="page-tab-bar">${tabBarHTML}</div>
+  <div class="filter-bar-wrap">
+    <input class="filter-search" style="flex:2;min-width:220px;" placeholder="🔍  Invoice ID, Order ID, client, account ID, billing period…" value="${invFilter.search}" oninput="invFilter.search=this.value;buildInvoicesPage()"/>
+    <div class="filter-divider"></div>
+    <select class="fsel" onchange="invFilter.client=this.value;buildInvoicesPage()"><option value="">All Clients</option>${clientOpts}</select>
+    ${hasFilter?`<button class="btn-reset" onclick="invFilter.search='';invFilter.client='';buildInvoicesPage()">↺ Reset</button>`:""}
+    <span style="font-size:12px;color:#64748B;">${all.length} result${all.length!==1?"s":""}</span>
+    <div style="margin-left:auto;"><button class="btn-primary" style="padding:7px 16px;font-size:12px;" onclick="openBulkDownload()">⬇ Bulk Download</button></div>
+  </div>
+  <div class="tbl-outer">
+    <div class="tbl-header">
+      <div style="font-size:13px;color:#64748B;">Showing <strong>${all.length}</strong> of <strong>${INVOICES.length}</strong> invoices${hasFilter?` <span style="color:#6C63FF;font-size:12px;">(filtered)</span>`:""}</div>
+      <button class="btn-view-all" onclick="exportInvoiceCSV()">⬇ Export CSV</button>
+    </div>
+    <div class="tbl-scroll">
+    ${all.length===0?`<div class="empty-state">No invoices match your filters.</div>`:`
+    <table class="data-table" style="min-width:1080px;">
+      <thead><tr>
+        <th>Invoice #</th><th>Account #</th><th>Client</th><th>Order ID(s)</th>
+        <th>Billing Period</th><th>Invoice Date</th><th>Due Date</th>
+        <th>Shipments</th><th>Base Charges</th><th>Tax</th><th>Total Due</th>
+        <th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${all.map(inv=>`<tr>
+        <td><span class="ord-id">${inv.invoiceNumber}</span></td>
+        <td style="font-family:monospace;color:#94A3B8;font-size:12px;">${inv.accountNumber}</td>
+        <td><div style="font-weight:600;">${inv.client}</div><div style="font-size:11px;color:#64748B;">${inv.tenant}</div></td>
+        <td><div style="display:flex;flex-wrap:wrap;gap:3px;">${(inv.orderIds||[]).length?inv.orderIds.map(o=>`<span class="ord-tag">${o}</span>`).join(""):`<span style="color:#64748B;font-size:12px;">—</span>`}</div></td>
+        <td class="cell-muted">${inv.billingPeriod}</td>
+        <td>${inv.invoiceDate}</td>
+        <td style="color:${inv.status==="overdue"?"#EF4444":inv.status==="pending"?"#F59E0B":"#94A3B8"};font-weight:${inv.status==="overdue"?700:400};">${inv.dueDate}</td>
+        <td style="text-align:center;font-weight:600;">${inv.totalShipments}</td>
+        <td style="font-weight:600;">CAD ${inv.baseCharges.toLocaleString('en-CA',{minimumFractionDigits:2})}</td>
+        <td class="cell-muted">CAD ${inv.taxAmount.toLocaleString('en-CA',{minimumFractionDigits:2})}</td>
+        <td style="font-weight:800;color:#22C55E;">CAD ${inv.totalDue.toLocaleString('en-CA',{minimumFractionDigits:2})}</td>
+        <td><span class="${sMap[inv.status]||"inv-status-pending"}">${sLabel[inv.status]||inv.status}</span></td>
+        <td><div style="display:flex;gap:5px;"><button class="btn-view-inv" onclick="viewInvoice('${inv.invoiceNumber}')">👁 View</button><button class="btn-dl-inv" onclick="downloadInvoice('${inv.invoiceNumber}')">⬇ PDF</button></div></td>
+      </tr>`).join("")}
+      </tbody>
+    </table>`}
+    </div>
+  </div>`;
+}
+
+function exportInvoiceCSV(){
+  const data=getFilteredInvoices();
+  const csv=["Invoice #,Account #,Client,Order IDs,Billing Period,Invoice Date,Due Date,Shipments,Base Charges,Tax,Total Due,Status",...data.map(i=>`${i.invoiceNumber},${i.accountNumber},${i.client},"${(i.orderIds||[]).join(", ")}","${i.billingPeriod}",${i.invoiceDate},${i.dueDate},${i.totalShipments},${i.baseCharges},${i.taxAmount},${i.totalDue},${i.status}`)].join("\n");
+  const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="invoices_export.csv";a.click();
+}
+
+function buildInvoiceHTML(inv,forPrint){
+  const sColor={paid:"#22C55E",pending:"#F59E0B",overdue:"#EF4444",disputed:"#8B5CF6",partial:"#06B6D4"};
+  const sLabel={paid:"PAID",pending:"PENDING",overdue:"OVERDUE",disputed:"DISPUTED",partial:"PARTIAL"};
+  const sc=sColor[inv.status]||"#94A3B8";
+  const ordersHTML=inv.orders.length?inv.orders.map(o=>`<div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div><strong>Order: ${o.no}</strong><span style="margin-left:12px;color:#6b7280;font-size:12px;">${o.shipDate}</span></div><div style="font-size:12px;color:#6b7280;">Service: <strong>${o.service}</strong></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:#374151;"><div><span style="color:#6b7280;">From:</span> ${o.from}</div><div><span style="color:#6b7280;">To:</span> ${o.to}</div><div><span style="color:#6b7280;">Delivered:</span> ${o.delivered}</div><div><span style="color:#6b7280;">POD:</span> ${o.pod}</div></div><div style="display:flex;justify-content:flex-end;gap:24px;margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb;font-size:12px;"><div>Base: <strong>CAD ${o.base.toFixed(2)}</strong></div><div>HST ${inv.taxRate}%: <strong>CAD ${o.tax.toFixed(2)}</strong></div><div>Subtotal: <strong>CAD ${o.subtotal.toFixed(2)}</strong></div></div></div>`).join(""):`<div style="text-align:center;padding:30px;color:#6b7280;border:1px dashed #d1d5db;border-radius:8px;">Order line items available in full billing system.</div>`;
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Invoice ${inv.invoiceNumber} — ${inv.client}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Helvetica Neue',Arial,sans-serif;color:#1f2937;background:#f9fafb;padding:${forPrint?"0":"32px"};}.page{background:#fff;max-width:860px;margin:0 auto;padding:48px 52px;box-shadow:${forPrint?"none":"0 4px 24px rgba(0,0,0,.1)"};border-radius:${forPrint?"0":"12px"};}@media print{body{background:#fff;padding:0;}.page{box-shadow:none;border-radius:0;padding:32px;}.no-print{display:none!important;}}</style></head><body><div class="page">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #111827;">
+    <div><div style="font-size:22px;font-weight:800;color:#111827;">ATRIPCO DELIVERY SERVICE LTD</div><div style="font-size:13px;color:#6b7280;margin-top:4px;line-height:1.7;">324 Horner Ave # 4, Toronto, ON M8W1Z3<br/>(416) 252-7721 · ar@atripco.net</div><div style="margin-top:8px;font-size:11px;color:#6b7280;">GST/HST: 121180392RT0001</div></div>
+    <div style="text-align:right;"><div style="font-size:32px;font-weight:900;color:#111827;">INVOICE</div><div style="margin-top:12px;font-size:13px;line-height:2;"><div><span style="color:#6b7280;">Invoice #:</span> <strong>${inv.invoiceNumber}</strong></div><div><span style="color:#6b7280;">Account #:</span> <strong>${inv.accountNumber}</strong></div><div><span style="color:#6b7280;">Invoice Date:</span> <strong>${inv.invoiceDate}</strong></div><div><span style="color:#6b7280;">Due Date:</span> <strong style="color:${sc};">${inv.dueDate}</strong></div></div><div style="margin-top:12px;display:inline-block;background:${sc}18;color:${sc};border:2px solid ${sc};border-radius:8px;padding:4px 16px;font-size:13px;font-weight:800;">${sLabel[inv.status]||inv.status.toUpperCase()}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
+    <div style="background:#f9fafb;border-radius:10px;padding:16px 20px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px;">Invoice Submitted To</div><div style="font-size:14px;font-weight:700;">${inv.client}</div><div style="font-size:12px;color:#6b7280;margin-top:4px;line-height:1.7;">Account: ${inv.accountNumber}<br/>Terms: ${inv.paymentTerms}</div></div>
+    <div style="background:#f9fafb;border-radius:10px;padding:16px 20px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px;">Invoice Summary</div><div style="font-size:12px;color:#374151;line-height:2;"><div style="display:flex;justify-content:space-between;"><span>Billing Period:</span><strong>${inv.billingPeriod}</strong></div><div style="display:flex;justify-content:space-between;"><span>Total Shipments:</span><strong>${inv.totalShipments}</strong></div><div style="display:flex;justify-content:space-between;"><span>Base Charges:</span><strong>CAD ${inv.baseCharges.toFixed(2)}</strong></div>${inv.discounts>0?`<div style="display:flex;justify-content:space-between;"><span>Discounts:</span><strong style="color:#22c55e;">- CAD ${inv.discounts.toFixed(2)}</strong></div>`:""}<div style="display:flex;justify-content:space-between;"><span>HST ${inv.taxRate}%:</span><strong>CAD ${inv.taxAmount.toFixed(2)}</strong></div></div></div>
+  </div>
+  <div style="background:#111827;color:#fff;border-radius:12px;padding:20px 28px;display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;"><div style="font-size:16px;opacity:.8;">Total Due</div><div style="font-size:32px;font-weight:900;">CAD ${inv.totalDue.toLocaleString('en-CA',{minimumFractionDigits:2})}</div></div>
+  ${inv.orders.length?`<div style="margin-bottom:24px;"><div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #e5e7eb;">Invoice Details</div>${ordersHTML}</div>`:""}
+  <div style="border-top:2px solid #e5e7eb;padding-top:20px;display:flex;justify-content:space-between;align-items:flex-end;"><div style="font-size:12px;color:#6b7280;line-height:1.7;">Cheque payable to <strong>Atripco Delivery Service Ltd</strong><br/>Credit card / direct deposit: <strong>ar@atripco.net</strong></div><div style="text-align:right;font-size:11px;color:#9ca3af;">Invoice ${inv.invoiceNumber} · ${inv.client}</div></div>
+  ${forPrint?"":`<div class="no-print" style="margin-top:28px;display:flex;gap:12px;justify-content:flex-end;"><button onclick="window.print()" style="background:#111827;color:#fff;border:none;border-radius:9px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;">🖨️ Print / Save as PDF</button><button onclick="window.close()" style="background:#e5e7eb;color:#374151;border:none;border-radius:9px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;">Close</button></div>`}
+</div></body></html>`;
+}
+
+function viewInvoice(num){const inv=INVOICES.find(i=>i.invoiceNumber===num);if(!inv)return;const w=window.open("","_blank");w.document.write(buildInvoiceHTML(inv,false));w.document.close();}
+function downloadInvoice(num){const inv=INVOICES.find(i=>i.invoiceNumber===num);if(!inv)return;const w=window.open("","_blank");w.document.write(buildInvoiceHTML(inv,true));w.document.close();setTimeout(()=>{try{w.print();}catch(e){}},600);}
+
+// ── BULK DOWNLOAD ─────────────────────────────────────────────────────────────
+function openBulkDownload(){
+  const dates=INVOICES.map(i=>i.invoiceDateRaw).sort();
+  document.getElementById("bd-date-from").value=dates[0]||"";
+  document.getElementById("bd-date-to").value=dates[dates.length-1]||"";
+  document.getElementById("bd-status").value="";
+  document.getElementById("bd-client").value="";
+  updateBulkPreview();
+  openModal("modal-bulk-download");
+}
+function getBulkMatched(){
+  const from=document.getElementById("bd-date-from").value;
+  const to=document.getElementById("bd-date-to").value;
+  const status=document.getElementById("bd-status").value;
+  const client=document.getElementById("bd-client").value;
+  return INVOICES.filter(i=>{
+    if(from&&i.invoiceDateRaw<from)return false;
+    if(to&&i.invoiceDateRaw>to)return false;
+    if(status&&i.status!==status)return false;
+    if(client&&i.client!==client)return false;
+    return true;
+  });
+}
+function updateBulkPreview(){
+  const matched=getBulkMatched();
+  const total=matched.reduce((s,i)=>s+i.totalDue,0);
+  document.getElementById("bd-preview").innerHTML=`<div style="background:#0F172A;border-radius:10px;padding:14px 18px;display:flex;gap:28px;align-items:center;flex-wrap:wrap;">
+    <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:#6C63FF;">${matched.length}</div><div style="font-size:11px;color:#64748B;margin-top:2px;">Invoices</div></div>
+    <div style="width:1px;height:36px;background:#334155;"></div>
+    <div style="text-align:center;"><div style="font-size:18px;font-weight:800;color:#22C55E;">CAD ${total.toLocaleString('en-CA',{minimumFractionDigits:2})}</div><div style="font-size:11px;color:#64748B;margin-top:2px;">Total Value</div></div>
+    <div style="margin-left:auto;font-size:12px;color:#64748B;">${matched.length>0?matched.slice(0,3).map(i=>`<div style="margin-bottom:3px;">📄 ${i.invoiceNumber} — ${i.client}</div>`).join("")+(matched.length>3?`<div style="color:#6C63FF;">+${matched.length-3} more…</div>`:""): `<span style="color:#EF4444;">No invoices match.</span>`}</div>
+  </div>`;
+  const btn=document.getElementById("bd-download-btn");
+  btn.disabled=matched.length===0;btn.style.opacity=matched.length===0?"0.4":"1";
+}
+function executeBulkDownload(){
+  const matched=getBulkMatched();if(matched.length===0)return;
+  const btn=document.getElementById("bd-download-btn");
+  btn.textContent="⏳ Opening…";btn.disabled=true;
+  matched.forEach((inv,idx)=>{setTimeout(()=>{const w=window.open("","_blank");if(w){w.document.write(buildInvoiceHTML(inv,true));w.document.close();setTimeout(()=>{try{w.print();}catch(e){}},400);}},idx*350);});
+  setTimeout(()=>{btn.textContent=`✅ ${matched.length} Opened`;setTimeout(()=>{btn.textContent="⬇ Download All";btn.disabled=false;closeModal("modal-bulk-download");},1800);},matched.length*350+200);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ORDERS
+// ═══════════════════════════════════════════════════════════════
+const ORD_COMPANIES=[...new Set(ALL_ORDERS.map(o=>o.company))].sort();
+const ORD_VEHICLES=[...new Set(ALL_ORDERS.map(o=>o.vehicle))].sort();
+
+function getFilteredOrders(){
+  let list=[...ALL_ORDERS];
+  if(ordF.search){const q=ordF.search.toLowerCase();list=list.filter(o=>o.id.toLowerCase().includes(q)||o.company.toLowerCase().includes(q)||o.pickup.city.toLowerCase().includes(q)||o.pickup.postal.includes(q)||o.delivery.city.toLowerCase().includes(q)||o.delivery.postal.includes(q));}
+  if(ordF.company)list=list.filter(o=>o.company===ordF.company);
+  if(ordF.status)list=list.filter(o=>o.status===ordF.status);
+  if(ordF.vehicle)list=list.filter(o=>o.vehicle===ordF.vehicle);
+  if(ordF.pickupZone)list=list.filter(o=>o.pickup.zone===ordF.pickupZone);
+  if(ordF.dropZone)list=list.filter(o=>o.delivery.zone===ordF.dropZone);
+  if(ordF.service)list=list.filter(o=>o.service===ordF.service);
+  if(ordF.sort==="oldest")list=list.reverse();
+  else if(ordF.sort==="val-h")list.sort((a,b)=>b.amount-a.amount);
+  else if(ordF.sort==="val-l")list.sort((a,b)=>a.amount-b.amount);
+  else if(ordF.sort==="delayed")list.sort((a,b)=>b.delayed-a.delayed);
+  return list;
+}
+
+function buildOrdersPage(){
+  const all=getFilteredOrders();
+  const totalPages=Math.max(1,Math.ceil(all.length/PAGE_SIZE));
+  ordF.page=Math.min(ordF.page,totalPages);
+  const paged=all.slice((ordF.page-1)*PAGE_SIZE,ordF.page*PAGE_SIZE);
+  const tot=ALL_ORDERS.length,inProg=ALL_ORDERS.filter(o=>!["Completed","Cancelled","Task Failed"].includes(o.status)).length,compl=ALL_ORDERS.filter(o=>o.status==="Completed").length,failed=ALL_ORDERS.filter(o=>o.status==="Task Failed").length,cancelled=ALL_ORDERS.filter(o=>o.status==="Cancelled").length,delayed=ALL_ORDERS.filter(o=>o.delayed).length;
+  const coOpts=ORD_COMPANIES.map(c=>`<option value="${c}"${ordF.company===c?" selected":""}>${c}</option>`).join("");
+  const stOpts=STATUSES.map(s=>`<option value="${s}"${ordF.status===s?" selected":""}>${s}</option>`).join("");
+  const vhOpts=ORD_VEHICLES.map(v=>`<option value="${v}"${ordF.vehicle===v?" selected":""}>${v}</option>`).join("");
+  const znOpts=ZONES.map(z=>`<option value="${z}"${ordF.pickupZone===z?" selected":""}>${z}</option>`).join("");
+  const dzOpts=ZONES.map(z=>`<option value="${z}"${ordF.dropZone===z?" selected":""}>${z}</option>`).join("");
+  const activeSvc=ordF.service;
+  const svcPillsHTML=SERVICES.map(s=>{const col=SVC_COLORS[s],on=activeSvc===s;return `<div class="svc-pill${on?" active":""}" style="${on?`background:${col}22;color:${col};border-color:${col};`:""}" onclick="setSvc('${s}')">${s}</div>`;}).join("");
+  const hasFilter=ordF.search||ordF.company||ordF.status||ordF.vehicle||ordF.pickupZone||ordF.dropZone||ordF.service;
+  document.getElementById("page-content").innerHTML=`
+  <div class="ord-kpi-row">
+    <div class="ord-kpi"><div class="ord-kpi-label">Total Orders</div><div class="ord-kpi-value" style="color:#F1F5F9;">${tot}</div><div class="ord-kpi-sub" style="color:#64748B;">All time</div></div>
+    <div class="ord-kpi" onclick="setOrdStatus('')"><div class="ord-kpi-label">In Progress</div><div class="ord-kpi-value" style="color:#3B82F6;">${inProg}</div><div class="ord-kpi-sub" style="color:#3B82F6;">Active now</div></div>
+    <div class="ord-kpi" onclick="setOrdStatus('Completed')"><div class="ord-kpi-label">Completed</div><div class="ord-kpi-value" style="color:#22C55E;">${compl}</div><div class="ord-kpi-sub" style="color:#22C55E;">↑ 8% vs yesterday</div></div>
+    <div class="ord-kpi" onclick="setOrdStatus('Task Failed')"><div class="ord-kpi-label">Failed</div><div class="ord-kpi-value" style="color:#EF4444;">${failed}</div><div class="ord-kpi-sub" style="color:#EF4444;">${((failed/tot)*100).toFixed(1)}% rate</div></div>
+    <div class="ord-kpi" onclick="setOrdStatus('Cancelled')"><div class="ord-kpi-label">Cancelled</div><div class="ord-kpi-value" style="color:#64748B;">${cancelled}</div></div>
+    <div class="ord-kpi" onclick="setDelayed()"><div class="ord-kpi-label">Delayed</div><div class="ord-kpi-value" style="color:#F97316;">${delayed}</div><div class="ord-kpi-sub" style="color:#F97316;">Needs attention</div></div>
+  </div>
+  <div style="background:#1E293B;border-radius:14px;border:1px solid #334155;margin-bottom:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input class="filter-search" placeholder="🔍  Order ID, company, city, postal…" value="${ordF.search}" oninput="ordF.search=this.value;ordF.page=1;buildOrdersPage()"/>
+      <div class="filter-divider"></div>
+      <select class="fsel" onchange="ordF.company=this.value;ordF.page=1;buildOrdersPage()"><option value="">All Companies</option>${coOpts}</select>
+      <select class="fsel" onchange="ordF.status=this.value;ordF.page=1;buildOrdersPage()"><option value="">All Statuses</option>${stOpts}</select>
+      <select class="fsel" onchange="ordF.vehicle=this.value;ordF.page=1;buildOrdersPage()"><option value="">All Vehicles</option>${vhOpts}</select>
+      <select class="fsel" onchange="ordF.pickupZone=this.value;ordF.page=1;buildOrdersPage()"><option value="">Pickup Zone</option>${znOpts}</select>
+      <select class="fsel" onchange="ordF.dropZone=this.value;ordF.page=1;buildOrdersPage()"><option value="">Drop Zone</option>${dzOpts}</select>
+      <div class="filter-divider"></div>
+      <select class="fsel" style="flex:0 0 auto;" onchange="ordF.sort=this.value;buildOrdersPage()">
+        <option value="newest"${ordF.sort==="newest"?" selected":""}>Newest First</option>
+        <option value="oldest"${ordF.sort==="oldest"?" selected":""}>Oldest First</option>
+        <option value="val-h"${ordF.sort==="val-h"?" selected":""}>Amount ↓</option>
+        <option value="val-l"${ordF.sort==="val-l"?" selected":""}>Amount ↑</option>
+        <option value="delayed"${ordF.sort==="delayed"?" selected":""}>Delayed First</option>
+      </select>
+      ${hasFilter?`<button class="btn-reset" onclick="resetOrdFilters()">↺ Reset</button>`:""}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;">Service</span>
+      <div class="service-pills">
+        <div class="svc-pill${!activeSvc?" active":""}" style="${!activeSvc?"background:#6C63FF22;color:#6C63FF;border-color:#6C63FF;":""}" onclick="setSvc('')">All</div>
+        ${svcPillsHTML}
+      </div>
+    </div>
+  </div>
+  <div class="tbl-outer">
+    <div class="tbl-header">
+      <div style="font-size:13px;color:#64748B;">Showing <strong>${paged.length}</strong> of <strong>${all.length}</strong> orders${hasFilter?` <span style="color:#6C63FF;font-size:12px;">(filtered)</span>`:""}</div>
+      <button class="btn-view-all" onclick="exportOrdCSV()">⬇ Export CSV</button>
+    </div>
+    <div class="tbl-scroll">
+    ${paged.length===0?`<div class="empty-state">📭 No orders match the current filters.</div>`:`
+    <table class="data-table">
+      <thead><tr><th>Order ID</th><th>Company</th><th>Pickup</th><th>Pickup Date</th><th>Delivery</th><th>Delivery Date</th><th>Vehicle</th><th>Amount</th><th>Status</th><th>Created On</th></tr></thead>
+      <tbody>${paged.map(o=>ordRowHTML(o)).join("")}</tbody>
+    </table>`}
+    </div>
+    ${totalPages>1?`<div class="pagination"><div class="page-info">Page ${ordF.page} of ${totalPages} · ${all.length} orders</div><div class="page-btns"><button class="page-btn" onclick="ordF.page=Math.max(1,ordF.page-1);buildOrdersPage()" ${ordF.page===1?"disabled":""}>‹</button>${Array.from({length:totalPages},(_,i)=>`<button class="page-btn${ordF.page===i+1?" active":""}" onclick="ordF.page=${i+1};buildOrdersPage()">${i+1}</button>`).join("")}<button class="page-btn" onclick="ordF.page=Math.min(${totalPages},ordF.page+1);buildOrdersPage()" ${ordF.page===totalPages?"disabled":""}>›</button></div></div>`:""}
+  </div>`;
+}
+
+function ordRowHTML(o){
+  const sc=STATUS_COLORS[o.status],svcCol=SVC_COLORS[o.service]||"#94A3B8";
+  const ddCell=o.delayed?`<td class="cell-delayed"><div>⚠ ${o.deliveryDate}</div><div style="font-size:11px;opacity:.8;">Delayed</div></td>`:`<td><div class="cell-muted">${o.deliveryDate}</div></td>`;
+  return `<tr onclick="renderOrderDetail('${o.id}')">
+    <td><span class="ord-id">${o.id}</span></td>
+    <td><div style="font-weight:600;">${o.company}</div><div style="font-size:11px;margin-top:2px;"><span style="background:${svcCol}22;color:${svcCol};border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;">${o.service}</span></div></td>
+    <td><div style="font-size:13px;font-weight:500;">${o.pickup.postal}</div><div style="font-size:11px;color:#64748B;">${o.pickup.city} · ${o.pickup.zone}</div></td>
+    <td>${o.pickupDate}</td>
+    <td><div style="font-size:13px;font-weight:500;">${o.delivery.postal}</div><div style="font-size:11px;color:#64748B;">${o.delivery.city} · ${o.delivery.zone}</div></td>
+    ${ddCell}
+    <td><span style="font-size:12px;color:#94A3B8;">${VI[o.vehicle]||"🚗"} ${o.vehicle}</span></td>
+    <td><span style="font-weight:700;color:#22C55E;">₹${o.amount.toLocaleString('en-IN')}</span></td>
+    <td><span class="status-badge" style="background:${sc}22;color:${sc};border:1px solid ${sc}44;">${o.status}</span></td>
+    <td><div class="cell-muted">${o.createdOn}</div></td>
+  </tr>`;
+}
+function setOrdStatus(s){ordF.status=s;ordF.page=1;buildOrdersPage();}
+function setSvc(s){ordF.service=s;ordF.page=1;buildOrdersPage();}
+function setDelayed(){ordF.sort=ordF.sort==="delayed"?"newest":"delayed";buildOrdersPage();}
+function resetOrdFilters(){ordF={search:"",company:"",status:"",vehicle:"",pickupZone:"",dropZone:"",service:"",sort:"newest",page:1};buildOrdersPage();}
+function exportOrdCSV(){const d=getFilteredOrders();const csv=["Order ID,Company,Status,Amount",...d.map(o=>`${o.id},${o.company},${o.status},₹${o.amount.toLocaleString('en-IN')}`)].join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="orders.csv";a.click();}
+
+function renderOrderDetail(id){
+  destroyCharts();const o=ALL_ORDERS.find(x=>x.id===id);if(!o)return;
+  const sc=STATUS_COLORS[o.status],dc=DC[o.driverIdx%DC.length],dInit=o.driver.split(" ").map(w=>w[0]).join(""),svcCol=SVC_COLORS[o.service]||"#94A3B8",isTerminal=["Completed","Task Failed","Cancelled"].includes(o.status),activeIdx=STATUSES.indexOf(o.status),p=o.pricing;
+  const tlHTML=STATUSES.map((s,i)=>{const done=i<=activeIdx,cur=i===activeIdx,sc2=STATUS_COLORS[s],dc2=done?(cur?sc2:"#22C55E"):"#1E293B",lc=i<activeIdx?"#22C55E":"#334155",isLast=i===STATUSES.length-1,t=done?`0${9+Math.floor(i*1.5)}:${((i*17)%60).toString().padStart(2,"0")} AM`:"—";return `<div class="tl-step"><div class="tl-left"><div class="tl-dot-outer" style="background:${done?dc2+"33":"transparent"};border:2px solid ${done?dc2:"#334155"};"><div style="width:8px;height:8px;border-radius:50%;background:${done?dc2:"#334155"};${cur?"box-shadow:0 0 7px "+sc2+"99;":""}"></div></div>${!isLast?`<div class="tl-vline" style="background:${lc};"></div>`:""}</div><div class="tl-content"><div class="tl-status" style="color:${done?"#F1F5F9":"#64748B"};font-weight:${cur?700:500};">${s}${cur?` <span style="background:${sc}22;color:${sc};border-radius:5px;padding:1px 7px;font-size:11px;">Now</span>`:""}</div><div class="tl-meta">${t}</div></div></div>`;}).join("");
+  const accHTML=o.accessorials.map(a=>{const isAuto=a==="Fuel Surcharge";return `<div class="acc-chip ${isAuto?"auto":"selected"}">${isAuto?"🔒":"✓"} ${a}</div>`;}).join("");
+  const piecesHTML=Array.from({length:Math.min(o.shipment.pieces,3)},(_,i)=>`<div class="piece-row"><span class="piece-badge">${o.id}-${i+1}</span><span>${o.shipment.type}</span><span style="color:#64748B;font-size:12px;margin-left:auto;">${o.shipment.dims} · ${o.shipment.weight}</span><span style="font-size:11px;font-weight:600;color:#22C55E;">✓ Scanned</span></div>`).join("")+(o.shipment.pieces>3?`<div style="font-size:12px;color:#64748B;padding:6px 10px;">+${o.shipment.pieces-3} more</div>`:"");
+  const skillsHTML=o.driverSkills.length?o.driverSkills.map(s=>`<span class="skill-chip">⭐ ${s}</span>`).join(""):`<span style="font-size:12px;color:#64748B;">None required</span>`;
+  const acts=[{u:"System",col:"#334155",i:"S",a:`Order created via ${o.channel}`,t:o.createdOn},{u:"System",col:"#6C63FF",i:"S",a:"Validated & sent to Bringg",t:o.createdOn},{u:"System",col:"#F59E0B",i:"S",a:`${o.driver} assigned`,t:o.pickupDate},...(activeIdx>=4?[{u:o.driver,col:dc,i:dInit,a:"Package picked up",t:o.pickupDate}]:[]),...(o.delayed?[{u:"System",col:"#EF4444",i:"⚠",a:"Delay detected — ETA updated",t:o.deliveryDate,d:"~45 min delay"}]:[])].reverse();
+  const actHTML=acts.map(a=>`<div class="activity-row"><div class="activity-avatar" style="background:${a.col}22;color:${a.col};">${a.i}</div><div style="flex:1;"><div style="font-size:13px;">${a.a}</div><div style="font-size:11px;color:#64748B;margin-top:2px;">${a.t} · ${a.u}</div>${a.d?`<div style="font-size:11px;color:#94A3B8;margin-top:3px;background:#0F172A;border-radius:5px;padding:3px 7px;display:inline-block;">${a.d}</div>`:""}</div></div>`).join("");
+  const otColor={"On-Demand Courier":"#6C63FF","On-Demand Truck":"#F97316","Scheduled / Contractual":"#3B82F6"}[o.orderType]||"#94A3B8";
+  const chColor={Portal:"#22C55E",API:"#3B82F6",Internal:"#F59E0B"}[o.channel]||"#94A3B8";
+  document.getElementById("page-content").innerHTML=`<div>
+  <div class="detail-topbar">
+    <div><div class="detail-breadcrumb"><span class="detail-bc-link" onclick="buildOrdersPage()">← Orders</span><span>/</span><span style="color:#F1F5F9;">${o.id}</span></div>
+    <div class="detail-order-id">${o.id}<span style="background:${sc}22;color:${sc};border:1px solid ${sc}44;border-radius:8px;padding:4px 12px;font-size:13px;">${o.status}</span>${o.delayed?`<span style="background:#EF444422;color:#EF4444;border:1px solid #EF444440;border-radius:8px;padding:4px 12px;font-size:13px;">⚠ Delayed</span>`:""}<span style="background:${otColor}22;color:${otColor};border:1px solid ${otColor}33;border-radius:8px;padding:4px 12px;font-size:12px;">${o.orderType}</span><span style="background:${chColor}22;color:${chColor};border:1px solid ${chColor}33;border-radius:8px;padding:4px 10px;font-size:11px;">${o.channel}</span></div></div>
+    <div class="detail-actions">${!isTerminal?`<button class="btn-outline-danger">Cancel Order</button>`:""}<button class="btn-outline">Reassign Driver</button><button class="btn-outline">Print Label</button><button class="btn-update">Update Status ↓</button></div>
+  </div>
+  <div class="detail-summary-row">
+    <div class="detail-summary-card"><div class="ds-label">Order Amount</div><div class="ds-value" style="color:#22C55E;">₹${o.amount.toLocaleString('en-IN')}</div><div class="ds-sub">Excl. tax</div></div>
+    <div class="detail-summary-card"><div class="ds-label">Service Level</div><div class="ds-value" style="color:${svcCol};">${o.service}</div><div class="ds-sub">${o.priority} Priority</div></div>
+    <div class="detail-summary-card"><div class="ds-label">Vehicle</div><div class="ds-value">${VI[o.vehicle]||"🚗"} ${o.vehicle}</div><div class="ds-sub">${o.shipment.pieces} pc · ${o.shipment.weight}</div></div>
+    <div class="detail-summary-card"><div class="ds-label">Tracking ID</div><div class="ds-value" style="font-size:14px;font-family:monospace;">${o.trackingId}</div><div class="ds-sub">${o.createdOn}</div></div>
+  </div>
+  <div class="detail-body">
+    <div class="detail-left">
+      <div class="route-card">
+        <div class="route-leg"><div class="route-leg-label" style="color:#22C55E;">📍 Pickup</div><div class="route-leg-addr">${o.pickup.addr}</div><div class="route-leg-detail">${o.pickup.postal}, ${o.pickup.city} · <span style="color:#6C63FF;">${o.pickup.zone}</span></div><div class="route-leg-meta"><div class="route-meta-item"><div class="route-meta-key">Contact</div><div class="route-meta-val">${o.pickup.contact}</div></div><div class="route-meta-item"><div class="route-meta-key">Date & Time</div><div class="route-meta-val">${o.pickupDate}</div></div><div class="route-meta-item"><div class="route-meta-key">Residential</div><div class="route-meta-val">${o.pickup.residential?"Yes":"No"}</div></div></div></div>
+        <div class="route-connector"><div class="route-connector-line"></div><div class="route-connector-text">📦 ${o.shipment.pieces} pc · ${o.vehicle} · ${o.service}</div><div class="route-connector-line"></div></div>
+        <div class="route-leg"><div class="route-leg-label" style="color:${o.delayed?"#EF4444":"#3B82F6"};">🏁 Delivery${o.delayed?" · ⚠ Delayed":""}</div><div class="route-leg-addr">${o.delivery.addr}</div><div class="route-leg-detail">${o.delivery.postal}, ${o.delivery.city} · <span style="color:#6C63FF;">${o.delivery.zone}</span></div><div class="route-leg-meta"><div class="route-meta-item"><div class="route-meta-key">Consignee</div><div class="route-meta-val">${o.delivery.consignee}</div></div><div class="route-meta-item"><div class="route-meta-key">ETA</div><div class="route-meta-val" style="color:${o.delayed?"#EF4444":"#F1F5F9"};">${o.deliveryDate}</div></div><div class="route-meta-item"><div class="route-meta-key">Residential</div><div class="route-meta-val">${o.delivery.residential?"Yes":"No"}</div></div></div></div>
+      </div>
+      <div class="d-card"><div class="d-card-title">📦 Shipment</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;"><div class="dl-row"><span class="dl-key">Type</span><span class="dl-val">${o.shipment.type}</span></div><div class="dl-row"><span class="dl-key">Pieces</span><span class="dl-val">${o.shipment.pieces}</span></div><div class="dl-row"><span class="dl-key">Weight</span><span class="dl-val">${o.shipment.weight}</span></div><div class="dl-row"><span class="dl-key">Dimensions</span><span class="dl-val">${o.shipment.dims}</span></div><div class="dl-row"><span class="dl-key">Declared Value</span><span class="dl-val">${o.shipment.declaredValue?"₹"+o.shipment.declaredValue.toLocaleString('en-IN'):"—"}</span></div><div class="dl-row"><span class="dl-key">Insurance</span><span class="dl-val">${o.shipment.insurance?`<span style="color:#22C55E;">6% Applied</span>`:"None"}</span></div></div><div style="margin-top:14px;border-top:1px solid #334155;padding-top:12px;">${piecesHTML}</div>${o.notes?`<div style="margin-top:12px;background:#0F172A;border-radius:10px;padding:12px;font-size:13px;color:#94A3B8;border-left:3px solid #6C63FF;"><strong style="color:#F1F5F9;">Instructions: </strong>${o.notes}</div>`:""}</div>
+      <div class="d-card"><div class="d-card-title">⚙️ Accessorials</div><div class="accessorial-grid">${accHTML}</div></div>
+      <div class="d-card"><div class="d-card-title">🕐 Timeline</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;">${tlHTML}</div></div>
+      <div class="d-card"><div class="d-card-title">📋 Activity Log</div>${actHTML}</div>
+    </div>
+    <div class="detail-right">
+      <div class="d-card"><div class="d-card-title">🚚 Driver & Vehicle</div><div class="driver-card-inner"><div class="driver-avatar" style="background:${dc}22;color:${dc};">${dInit}</div><div style="flex:1;"><div style="font-weight:700;">${o.driver}</div><div style="font-size:12px;color:#64748B;">Assigned Driver</div></div></div><div class="dl-row"><span class="dl-key">Vehicle</span><span class="dl-val">${VI[o.vehicle]||"🚗"} ${o.vehicle}</span></div><div class="dl-row" style="align-items:flex-start;padding:10px 0;"><span class="dl-key">Skills</span><span class="dl-val">${skillsHTML}</span></div></div>
+      <div class="d-card"><div class="d-card-title">💰 Pricing</div><div class="pricing-row"><span class="pricing-key">Base Rate</span><span class="pricing-val">₹${p.base.toLocaleString('en-IN')}</span></div><div class="pricing-row"><span class="pricing-key">Distance</span><span class="pricing-val">₹${p.distance.toLocaleString('en-IN')}</span></div>${p.residential>0?`<div class="pricing-row"><span class="pricing-key">Residential</span><span class="pricing-val">₹${p.residential}</span></div>`:""} ${p.insurance>0?`<div class="pricing-row"><span class="pricing-key">Insurance (6%)</span><span class="pricing-val">₹${p.insurance.toLocaleString('en-IN')}</span></div>`:""}<div class="pricing-row"><span class="pricing-key">Fuel Surcharge</span><span class="pricing-val">₹${p.fuelSurcharge.toLocaleString('en-IN')}</span></div><div class="pricing-row" style="border-top:1px solid #334155;margin-top:4px;padding-top:12px;"><span class="pricing-key">Subtotal</span><span class="pricing-val">₹${(p.total-p.tax).toLocaleString('en-IN')}</span></div><div class="pricing-row"><span class="pricing-key">Tax (13%)</span><span class="pricing-val">₹${p.tax.toLocaleString('en-IN')}</span></div><div class="pricing-total"><span class="pricing-total-key">Total</span><span class="pricing-total-val">₹${p.total.toLocaleString('en-IN')}</span></div>${isTerminal?`<div style="margin-top:12px;display:flex;gap:8px;"><button class="btn-outline" style="flex:1;font-size:12px;">Override Price</button><button class="btn-submit" style="flex:1;padding:8px;font-size:12px;">Generate Invoice</button></div>`:""}</div>
+      <div class="d-card"><div class="d-card-title">📄 Documents</div><div class="doc-row"><div class="doc-info"><div class="doc-icon" style="background:#6C63FF22;">🏷️</div><div><div class="doc-name">Shipping Label</div><div class="doc-meta">${o.createdOn}</div></div></div><button class="btn-dl">⬇</button></div>${isTerminal&&o.status==="Completed"?`<div class="doc-row"><div class="doc-info"><div class="doc-icon" style="background:#22C55E22;">📸</div><div><div class="doc-name">Proof of Delivery</div><div class="doc-meta">${o.deliveryDate}</div></div></div><button class="btn-dl">⬇</button></div><div class="doc-row"><div class="doc-info"><div class="doc-icon" style="background:#F59E0B22;">🧾</div><div><div class="doc-name">Invoice</div><div class="doc-meta">Ready for billing</div></div></div><button class="btn-dl">⬇</button></div>`:""}</div>
+    </div>
+  </div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOMERS
+// ═══════════════════════════════════════════════════════════════
+const ON_HOLD=()=>APPROVED_CUSTOMERS.filter(c=>c.creditUsed>=c.creditLimit);
+
+function getFilteredCustList(list){
+  let r=[...list];const q=custFilter.search.toLowerCase();
+  if(q)r=r.filter(c=>c.company.toLowerCase().includes(q)||c.contact.name.toLowerCase().includes(q)||c.contact.email.toLowerCase().includes(q)||(c.contact.phone&&c.contact.phone.includes(q))||(c.accountId&&c.accountId.toLowerCase().includes(q)));
+  if(custFilter.type)r=r.filter(c=>c.type===custFilter.type);
+  return r;
+}
+
+function renderCustomers(){
+  custDetailId=null;document.getElementById("page-title").textContent="🏢 Customer Management";
+  const onHold=ON_HOLD();
+  const tabs=[{key:"approved",label:"Approved",count:APPROVED_CUSTOMERS.filter(c=>c.creditUsed<c.creditLimit).length},{key:"pending",label:"Pending Approvals",count:PENDING_CUSTOMERS.length,badge:true},{key:"onhold",label:"On Hold",count:onHold.length,badge:onHold.length>0,badgeColor:"#F97316"},{key:"rejected",label:"Rejected",count:REJECTED_CUSTOMERS.length}];
+  const tabsHTML=tabs.map(t=>`<div class="page-tab${custTab===t.key?" active":""}" onclick="switchCustTab('${t.key}')">${t.label}${t.badge&&t.count>0?`<span style="background:${t.badgeColor||"#F59E0B"};color:#000;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:5px;">${t.count}</span>`:""}</div>`).join("");
+  let activeList=custTab==="approved"?APPROVED_CUSTOMERS.filter(c=>c.creditUsed<c.creditLimit):custTab==="pending"?PENDING_CUSTOMERS:custTab==="onhold"?onHold:REJECTED_CUSTOMERS;
+  const filtered=getFilteredCustList(activeList);
+  const hasFilter=custFilter.search||custFilter.type;
+  const filterHTML=`<div class="filter-bar-wrap">
+    <input class="filter-search" style="flex:2;min-width:220px;" placeholder="🔍  Search by company, contact, email, phone, account ID…" value="${custFilter.search}" oninput="custFilter.search=this.value;renderCustomers()"/>
+    <div class="filter-divider"></div>
+    <select class="fsel" style="flex:0 0 auto;" onchange="custFilter.type=this.value;renderCustomers()">
+      <option value="">All Types</option>
+      <option value="Enterprise"${custFilter.type==="Enterprise"?" selected":""}>Enterprise</option>
+      <option value="SMB"${custFilter.type==="SMB"?" selected":""}>SMB</option>
+      <option value="Startup"${custFilter.type==="Startup"?" selected":""}>Startup</option>
+    </select>
+    ${hasFilter?`<button class="btn-reset" onclick="custFilter={search:'',type:''};renderCustomers()">↺ Reset</button>`:""}
+    <span style="font-size:12px;color:#64748B;">${filtered.length} result${filtered.length!==1?"s":""}</span>
+  </div>`;
+
+  let tableHTML="";
+  if(custTab==="approved"){
+    tableHTML=`<table class="cust-tbl"><thead><tr><th>Account ID</th><th>Company</th><th>Primary Contact</th><th>Email</th><th>Phone</th><th>Credit Limit</th><th>Billing Address</th><th>Billing Cycle</th></tr></thead><tbody>${filtered.length===0?`<tr><td colspan="8" class="empty-state">No accounts match your search.</td></tr>`:filtered.map(c=>`<tr onclick="renderCustomerDetail('${c.id}')"><td style="color:#6C63FF;font-weight:600;font-family:monospace;">${c.accountId}</td><td><div style="font-weight:700;">${c.company}</div><div style="margin-top:2px;">${tpill(c.type)}</div></td><td>${c.contact.name}</td><td style="color:#64748B;font-size:12px;">${c.contact.email}</td><td style="color:#64748B;font-size:12px;">${c.contact.phone}</td><td><span style="font-weight:700;color:#22C55E;">₹${(c.creditLimit/100000).toFixed(1)}L</span></td><td style="color:#64748B;font-size:12px;max-width:160px;">${c.billingAddress}</td><td><span class="billing-cycle-pill">${c.billingCycle}</span></td></tr>`).join("")}</tbody></table>`;
+  } else if(custTab==="pending"){
+    tableHTML=`<table class="cust-tbl"><thead><tr><th>Account ID</th><th>Company</th><th>Contact</th><th>Email</th><th>Phone</th><th>Requested Credit</th><th>Address</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>${filtered.length===0?`<tr><td colspan="9" class="empty-state">No pending accounts.</td></tr>`:filtered.map(c=>`<tr onclick="renderCustomerDetail('${c.id}','pending')"><td style="color:#6C63FF;font-weight:600;font-family:monospace;">${c.accountId}</td><td><div style="font-weight:700;">${c.company}</div><div style="margin-top:2px;">${tpill(c.type)}</div></td><td>${c.contact.name}</td><td style="color:#64748B;font-size:12px;">${c.contact.email}</td><td style="color:#64748B;font-size:12px;">${c.contact.phone}</td><td style="font-weight:600;">₹${(c.creditRequested/100000).toFixed(1)}L</td><td style="color:#64748B;font-size:12px;">${c.billingAddress}</td><td style="color:#64748B;font-size:12px;">${c.submitted}</td><td onclick="event.stopPropagation()"><button class="btn-approve" onclick="showConfirmation('approve','${c.id}')">Approve</button><button class="btn-reject" onclick="showConfirmation('reject','${c.id}')">Reject</button></td></tr>`).join("")}</tbody></table>`;
+  } else if(custTab==="onhold"){
+    tableHTML=`<div style="background:#F9731615;border:1px solid #F9731640;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#F97316;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🔒</span><div><strong>These accounts have reached 100% credit utilisation.</strong> New orders are blocked until invoices are settled.</div></div>
+    <table class="cust-tbl"><thead><tr><th>Account ID</th><th>Company</th><th>Contact</th><th>Email</th><th>Phone</th><th>Limit</th><th>Used</th><th>Billing Cycle</th><th>Action</th></tr></thead><tbody>${filtered.length===0?`<tr><td colspan="9" class="empty-state">No accounts on hold.</td></tr>`:filtered.map(c=>`<tr onclick="renderCustomerDetail('${c.id}')"><td style="color:#6C63FF;font-weight:600;font-family:monospace;">${c.accountId}</td><td><div style="font-weight:700;">${c.company}</div><div style="margin-top:2px;">${tpill(c.type)}</div></td><td>${c.contact.name}</td><td style="color:#64748B;font-size:12px;">${c.contact.email}</td><td style="color:#64748B;font-size:12px;">${c.contact.phone}</td><td style="font-weight:700;">₹${(c.creditLimit/100000).toFixed(1)}L</td><td><span style="color:#F97316;font-weight:800;">₹${(c.creditUsed/1000).toFixed(0)}k (100%)</span></td><td><span class="billing-cycle-pill">${c.billingCycle}</span></td><td onclick="event.stopPropagation()"><button class="btn-approve" style="white-space:nowrap;" onclick="custDetailTab='credit';renderCustomerDetail('${c.id}')">Settle Invoices</button></td></tr>`).join("")}</tbody></table>`;
+  } else {
+    tableHTML=`<table class="cust-tbl"><thead><tr><th>Account ID</th><th>Company</th><th>Contact</th><th>Email</th><th>Phone</th><th>Address</th><th>Rejected On</th><th>Reason</th><th>Action</th></tr></thead><tbody>${filtered.length===0?`<tr><td colspan="9" class="empty-state">No rejected accounts.</td></tr>`:filtered.map(c=>`<tr onclick="renderCustomerDetail('${c.id}','rejected')"><td style="color:#6C63FF;font-weight:600;font-family:monospace;">${c.accountId}</td><td><div style="font-weight:700;">${c.company}</div><div style="margin-top:2px;">${tpill(c.type)}</div></td><td>${c.contact.name}</td><td style="color:#64748B;font-size:12px;">${c.contact.email}</td><td style="color:#64748B;font-size:12px;">${c.contact.phone}</td><td style="color:#64748B;font-size:12px;">${c.billingAddress}</td><td style="color:#64748B;font-size:12px;">${c.rejectedOn}</td><td><span style="background:#EF444415;color:#EF4444;border-radius:6px;padding:2px 8px;font-size:11px;">${c.reason}</span></td><td onclick="event.stopPropagation()"><button class="btn-approve" onclick="showConfirmation('reevaluate','${c.id}')">Approve</button></td></tr>`).join("")}</tbody></table>`;
+  }
+  document.getElementById("page-content").innerHTML=`<div class="page-tab-bar">${tabsHTML}</div>${filterHTML}<div class="tbl-outer"><div style="overflow-x:auto;">${tableHTML}</div></div>`;
+}
+function switchCustTab(t){custTab=t;custFilter={search:"",type:""};renderCustomers();}
+
+function renderCustomerDetail(id,sourceTab){
+  if(sourceTab)custTab=sourceTab;
+  custDetailId=id;
+  const c=APPROVED_CUSTOMERS.find(c=>c.id===id)||PENDING_CUSTOMERS.find(c=>c.id===id)||REJECTED_CUSTOMERS.find(c=>c.id===id);
+  if(!c)return;
+  const isPending=!!PENDING_CUSTOMERS.find(x=>x.id===id);
+  buildCustomerDetailPage(c,isPending);
+}
+
+function buildCustomerDetailPage(c,isPending){
+  const isApproved=!!APPROVED_CUSTOMERS.find(x=>x.id===c.id);
+  const isRejected=!!REJECTED_CUSTOMERS.find(x=>x.id===c.id);
+  const isOnHold=isApproved&&c.creditUsed>=c.creditLimit;
+  const statusBadge=isOnHold?`<span class="stat-onhold">🔒 On Hold</span>`:isApproved?`<span class="stat-approved">✓ Approved</span>`:isPending?`<span class="stat-pending">⏳ Pending</span>`:`<span class="stat-rejected">✕ Rejected</span>`;
+  const tabs=isApproved?["details","credit","orders","invoices"]:["details"];
+  const tabBarHTML=tabs.map(t=>`<div class="cd-tab${custDetailTab===t?" active":""}" onclick="switchCustDetailTab('${c.id}','${t}')">${{details:"Account Details",credit:"Credit Management",orders:"Orders",invoices:"Invoices"}[t]}</div>`).join("");
+  const headerActions=isPending?`<button class="btn-approve" style="padding:8px 16px;" onclick="showConfirmation('approve','${c.id}')">Approve</button><button class="btn-reject" style="padding:8px 16px;" onclick="showConfirmation('reject','${c.id}')">Reject</button>`:isApproved?`<button class="btn-outline">Edit Details</button>`:isRejected?`<button class="btn-approve" style="padding:8px 16px;" onclick="showConfirmation('reevaluate','${c.id}')">Approve Account</button>`:"";
+  let tabContent="";
+  if(custDetailTab==="details"){
+    const tc={Swift:"#3B82F6",Atripco:"#8B5CF6"}[c.tenant]||"#94A3B8";
+    tabContent=`<div class="card"><div class="acct-grid">
+      <div class="acct-section-hdr">Company Information</div>
+      <div class="acct-field"><div class="acct-label">Account ID</div><div class="acct-value" style="font-family:monospace;color:#6C63FF;">${c.accountId||"—"}</div></div>
+      <div class="acct-field"><div class="acct-label">Company Name</div><div class="acct-value">${c.company}</div></div>
+      <div class="acct-field"><div class="acct-label">Tenant</div><div class="acct-value"><span style="background:${tc}22;color:${tc};border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">${c.tenant||"—"}</span></div></div>
+      <div class="acct-field"><div class="acct-label">Type</div><div class="acct-value">${tpill(c.type)}</div></div>
+      <div class="acct-field" style="grid-column:1/-1;padding-right:0;border-left:none;"><div class="acct-label">Billing Address</div><div class="acct-value">${c.billingAddress}</div></div>
+      <div class="acct-section-hdr">Primary Contact</div>
+      <div class="acct-field"><div class="acct-label">Name</div><div class="acct-value">${c.contact.name}</div></div>
+      <div class="acct-field"><div class="acct-label">Email</div><div class="acct-value">${c.contact.email}</div></div>
+      <div class="acct-field"><div class="acct-label">Phone</div><div class="acct-value">${c.contact.phone}</div></div>
+      <div class="acct-field"><div class="acct-label">Status</div><div class="acct-value">${statusBadge}</div></div>
+      <div class="acct-section-hdr">Credit & Billing</div>
+      <div class="acct-field"><div class="acct-label">Credit Limit</div><div class="acct-value" style="color:#22C55E;">₹${c.creditLimit?(c.creditLimit).toLocaleString('en-IN'):(c.creditRequested||0).toLocaleString('en-IN')}</div></div>
+      <div class="acct-field"><div class="acct-label">Payment Terms</div><div class="acct-value">${c.paymentTerms||"—"}</div></div>
+      <div class="acct-field"><div class="acct-label">Billing Cycle</div><div class="acct-value"><span class="billing-cycle-pill">${c.billingCycle||"—"}</span></div></div>
+      <div class="acct-field"><div class="acct-label">Default Service</div><div class="acct-value">${c.defaultService||"—"}</div></div>
+      ${c.taxId!==undefined?`<div class="acct-section-hdr">Optional</div>
+      <div class="acct-field"><div class="acct-label">Tax ID / GST</div><div class="${c.taxId?"acct-value":"acct-muted"}">${c.taxId||"Not provided"}</div></div>
+      <div class="acct-field"><div class="acct-label">Alt Billing Email</div><div class="${c.altEmail?"acct-value":"acct-muted"}">${c.altEmail||"Not provided"}</div></div>
+      <div class="acct-field" style="grid-column:1/-1;padding-right:0;border-left:none;"><div class="acct-label">Special Instructions</div><div class="${c.specialInstructions?"acct-value":"acct-muted"}">${c.specialInstructions||"None"}</div></div>`:""}
+    </div></div>`;
+  } else if(custDetailTab==="credit"){
+    tabContent=buildCreditTab(c);
+  } else {
+    tabContent=`<div class="placeholder" style="height:40vh;"><div class="placeholder-icon">${custDetailTab==="orders"?"📦":"🧾"}</div><div class="placeholder-title">${custDetailTab==="orders"?"Orders":"Invoices"} for ${c.company}</div><div class="placeholder-sub">This tab will show all ${custDetailTab} for this account.</div></div>`;
+  }
+  document.getElementById("page-content").innerHTML=`
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:#64748B;"><span style="cursor:pointer;color:#6C63FF;" onclick="renderCustomers()">← Customer Management</span><span>/</span><span style="color:#F1F5F9;">${c.company}</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #334155;">
+    <div><div style="font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">${c.company} ${statusBadge}${c.accountId?`<span style="font-size:13px;font-weight:600;color:#64748B;font-family:monospace;">${c.accountId}</span>`:""} ${tpill(c.type)}</div><div style="font-size:13px;color:#64748B;margin-top:6px;">${c.contact.email} · ${c.contact.phone}</div></div>
+    <div style="display:flex;gap:8px;">${headerActions}</div>
+  </div>
+  <div class="cd-tab-bar">${tabBarHTML}</div>${tabContent}`;
+}
+function switchCustDetailTab(id,tab){
+  custDetailTab=tab;
+  const c=APPROVED_CUSTOMERS.find(x=>x.id===id)||PENDING_CUSTOMERS.find(x=>x.id===id)||REJECTED_CUSTOMERS.find(x=>x.id===id);
+  buildCustomerDetailPage(c,!!PENDING_CUSTOMERS.find(x=>x.id===id));
+}
+
+function buildCreditTab(c){
+  const used=c.creditUsed,limit=c.creditLimit,avail=limit-used,pct=Math.round(used/limit*100),onHold=pct>=100,br=pct>=80;
+  const usedCol=onHold?"#F97316":br?"#EF4444":"#22C55E";
+  const histRows=c.creditHistory.length?[...c.creditHistory].reverse().map(h=>`<tr><td style="color:#64748B;font-size:12px;">${h.date}</td><td style="font-weight:700;color:#22C55E;">₹${h.amount.toLocaleString('en-IN')}</td><td><div class="inv-chips">${h.invoices.map(i=>`<span class="inv-chip">${i}</span>`).join("")}</div></td><td style="font-size:12px;">${h.method}</td><td style="font-size:12px;">${h.paidBy}</td><td style="font-size:12px;color:#64748B;">${h.notes||"—"}</td></tr>`).join(""):`<tr><td colspan="6" style="text-align:center;padding:30px;color:#64748B;">No payment history yet.</td></tr>`;
+  return `${onHold?`<div style="background:#F9731615;border:1px solid #F9731640;border-radius:12px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#F97316;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🔒</span><strong>Account on hold.</strong> Credit fully utilised. New orders blocked until invoices are settled.</div>`:""}
+  <div class="cred-kpi-row">
+    <div class="cred-kpi"><div class="cred-kpi-label">Credit Limit</div><div class="cred-kpi-value">₹${(limit/100000).toFixed(1)}L</div><div class="cred-kpi-sub" style="color:#64748B;">${c.paymentTerms}</div></div>
+    <div class="cred-kpi" style="flex:1.4"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div class="cred-kpi-label">Credit Utilised</div><span style="font-size:12px;font-weight:800;color:${usedCol};">${pct}%${onHold?" 🔒":br?" ⚠️":""}</span></div><div class="cred-kpi-value" style="color:${usedCol};">₹${(used/1000).toFixed(0)}k</div><div class="cred-bar-wrap"><div class="cred-bar-fill" style="width:${Math.min(pct,100)}%;background:${usedCol};"></div><div class="cred-bar-thr"></div></div><div class="cred-kpi-sub" style="color:#64748B;margin-top:6px;">of ₹${(limit/100000).toFixed(1)}L</div></div>
+    <div class="cred-kpi"><div class="cred-kpi-label">Available</div><div class="cred-kpi-value" style="color:${avail>0?"#22C55E":"#F97316"};">${avail>0?"₹"+(avail/1000).toFixed(0)+"k":"₹0"}</div><div class="cred-kpi-sub" style="color:${avail>0?"#64748B":"#F97316"};">${avail>0?"remaining":"Account on hold"}</div></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div style="font-size:15px;font-weight:700;">Payment History</div><button class="btn-primary" style="padding:8px 16px;font-size:12px;" onclick="openSettleInvoices('${c.id}')">+ Settle Invoices</button></div>
+  <div class="hist-wrap"><table class="hist-tbl" style="width:100%;"><thead><tr><th>Date</th><th>Amount Paid</th><th>Invoices Settled</th><th>Method</th><th>Paid By</th><th>Notes</th></tr></thead><tbody>${histRows}</tbody></table></div>`;
+}
+
+function openSettleInvoices(id){
+  activeCreditResetId=id;
+  document.getElementById("rc-date").value=new Date().toISOString().split("T")[0];
+  ["rc-amount","rc-invoices","rc-notes","rc-paidby"].forEach(k=>{document.getElementById(k).value="";});
+  document.getElementById("rc-method").value="";
+  openModal("modal-settle-invoices");
+}
+function submitCreditReset(){
+  const amt=parseInt(document.getElementById("rc-amount").value)||0;
+  const date=document.getElementById("rc-date").value;
+  const invs=document.getElementById("rc-invoices").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const method=document.getElementById("rc-method").value;
+  const paidBy=document.getElementById("rc-paidby").value;
+  const notes=document.getElementById("rc-notes").value;
+  if(!amt||!date||!invs.length||!method){alert("Please fill all required fields.");return;}
+  const c=APPROVED_CUSTOMERS.find(x=>x.id===activeCreditResetId);
+  if(c){c.creditUsed=Math.max(0,c.creditUsed-amt);c.creditHistory.push({id:"CHR-"+Date.now(),date:new Date(date).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}),amount:amt,invoices:invs,method,paidBy:paidBy||"—",notes});}
+  closeModal("modal-settle-invoices");
+  buildCustomerDetailPage(c,false);
+}
+
+function showConfirmation(action,customerId){
+  confirmState={action,customerId};
+  const cfg={approve:{title:"✅ Confirm Approval",desc:"You are about to approve this account. The customer will be notified and will be able to place orders.",btn:"Confirm Approval",col:"#22C55E"},reject:{title:"✕ Confirm Rejection",desc:"You are about to reject this account application. The customer will be notified. Please provide a reason — this will be recorded in the audit trail.",btn:"Confirm Rejection",col:"#EF4444"},reevaluate:{title:"✅ Approve Previously Rejected Account",desc:"This account was previously rejected. Please provide a reason for the reversal of decision.",btn:"Approve Account",col:"#22C55E"}};
+  const c=cfg[action];
+  document.getElementById("confirm-title").textContent=c.title;
+  document.getElementById("confirm-desc").textContent=c.desc;
+  document.getElementById("confirm-reason").value="";
+  const btn=document.getElementById("confirm-action-btn");
+  btn.textContent=c.btn;btn.style.background=c.col;
+  openModal("modal-confirm");
+}
+function submitConfirmAction(){
+  const reason=document.getElementById("confirm-reason").value.trim();
+  if(!reason){document.getElementById("confirm-reason").style.borderColor="#EF4444";document.getElementById("confirm-reason").placeholder="A reason is required.";return;}
+  closeModal("modal-confirm");renderCustomers();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// USER MANAGEMENT DATA
+// ═══════════════════════════════════════════════════════════════
+const ROLES={
+  platform_admin:{label:"Platform Admin",color:"#6C63FF",desc:"System owner with full configuration access. Manages pricing, accounts, credit limits, driver profiles, zone setup, and platform settings. Has access to all modules."},
+  finance_manager:{label:"Finance Manager",color:"#22C55E",desc:"Handles billing, invoicing, AR tracking, credit updates, bulk re-rating, and commission settlements. Read-only access to operations."},
+  ops_dispatch:{label:"Operations & Dispatch",color:"#3B82F6",desc:"Day-to-day logistics operations. Creates orders on behalf of customers, dispatches drivers, monitors order status, handles exceptions and multi-leg deliveries."},
+  account_admin:{label:"Account Admin",color:"#F59E0B",desc:"Company representative. Manages their organisation's profile, adds/removes company users, configures billing preferences, views invoices and reports."},
+  account_user:{label:"Account User",color:"#06B6D4",desc:"Operational user from a client company. Creates shipment orders, uploads bulk CSVs, tracks shipments, requests quotes, and downloads PODs."},
+};
+
+let USERS=[
+  {id:"USR-001",fname:"Arun",lname:"Verma",email:"arun.verma@atripco.net",phone:"+1 416 555 0101",role:"platform_admin",company:null,status:"active",lastLogin:"Mar 20, 2026 09:14 AM",createdOn:"Jan 5, 2026"},
+  {id:"USR-002",fname:"Priya",lname:"Mehta",email:"priya.mehta@atripco.net",phone:"+1 416 555 0102",role:"finance_manager",company:null,status:"active",lastLogin:"Mar 20, 2026 08:50 AM",createdOn:"Jan 5, 2026"},
+  {id:"USR-003",fname:"Rohan",lname:"Desai",email:"rohan.desai@atripco.net",phone:"+1 416 555 0103",role:"ops_dispatch",company:null,status:"active",lastLogin:"Mar 20, 2026 07:30 AM",createdOn:"Jan 10, 2026"},
+  {id:"USR-004",fname:"Sneha",lname:"Iyer",email:"sneha.iyer@atripco.net",phone:"+1 416 555 0104",role:"ops_dispatch",company:null,status:"active",lastLogin:"Mar 19, 2026 06:15 PM",createdOn:"Jan 10, 2026"},
+  {id:"USR-005",fname:"Vijay",lname:"Rao",email:"vijay@nexus.com",phone:"+91 98765 43210",role:"account_admin",company:"Nexus Retail",status:"active",lastLogin:"Mar 20, 2026 10:02 AM",createdOn:"Mar 9, 2026"},
+  {id:"USR-006",fname:"Ananya",lname:"Rao",email:"ananya@nexus.com",phone:"+91 98765 43211",role:"account_user",company:"Nexus Retail",status:"active",lastLogin:"Mar 20, 2026 09:45 AM",createdOn:"Mar 9, 2026"},
+  {id:"USR-007",fname:"Preethi",lname:"Rao",email:"preethi@nexus.com",phone:"+91 98765 43212",role:"account_user",company:"Nexus Retail",status:"inactive",lastLogin:"Mar 1, 2026 11:00 AM",createdOn:"Mar 9, 2026"},
+  {id:"USR-008",fname:"Sneha",lname:"Patil",email:"sneha@bluewave.in",phone:"+91 91234 56789",role:"account_admin",company:"BlueWave Co.",status:"active",lastLogin:"Mar 19, 2026 04:30 PM",createdOn:"Mar 7, 2026"},
+  {id:"USR-009",fname:"Meera",lname:"Krishnan",email:"meera@deltafoods.co",phone:"+91 88776 55443",role:"account_admin",company:"Delta Foods",status:"active",lastLogin:"Mar 18, 2026 02:10 PM",createdOn:"Mar 3, 2026"},
+  {id:"USR-010",fname:"Kiran",lname:"Krishnan",email:"kiran@deltafoods.co",phone:"+91 88776 55400",role:"account_user",company:"Delta Foods",status:"active",lastLogin:"Mar 20, 2026 08:00 AM",createdOn:"Mar 3, 2026"},
+  {id:"USR-011",fname:"Arjun",lname:"Singh",email:"arjun@apexlog.com",phone:"+91 77665 44332",role:"account_admin",company:"Apex Logistics",status:"active",lastLogin:"Mar 20, 2026 07:55 AM",createdOn:"Feb 28, 2026"},
+  {id:"USR-012",fname:"Devansh",lname:"Singh",email:"devansh@apexlog.com",phone:"+91 77665 44333",role:"account_user",company:"Apex Logistics",status:"inactive",lastLogin:"Feb 14, 2026 09:00 AM",createdOn:"Feb 28, 2026"},
+  {id:"USR-013",fname:"Lakshmi",lname:"Nair",email:"lnair@metrofreight.in",phone:"+91 44332 11009",role:"account_admin",company:"Metro Freight",status:"active",lastLogin:"Mar 19, 2026 05:00 PM",createdOn:"Feb 19, 2026"},
+  {id:"USR-014",fname:"Carlos",lname:"Swift",email:"carlos.swift@atripco.net",phone:"+1 416 555 0105",role:"finance_manager",company:null,status:"inactive",lastLogin:"Mar 10, 2026 11:00 AM",createdOn:"Feb 1, 2026"},
+];
+
+let usrFilter={search:"",role:"",status:"",company:""};
+let pendingDeactivateId=null;
+let selectedUserRole=null;
+
+// ═══════════════════════════════════════════════════════════════
+// USER MANAGEMENT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+function renderUsers(){
+  usrFilter={search:"",role:"",status:"",company:""};
+  selectedUserRole=null;
+  buildUsersPage();
+}
+
+function getFilteredUsers(){
+  let list=[...USERS];
+  if(usrFilter.search){const q=usrFilter.search.toLowerCase();list=list.filter(u=>u.fname.toLowerCase().includes(q)||u.lname.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)||u.id.toLowerCase().includes(q)||(u.company&&u.company.toLowerCase().includes(q)));}
+  if(usrFilter.role)list=list.filter(u=>u.role===usrFilter.role);
+  if(usrFilter.status)list=list.filter(u=>u.status===usrFilter.status);
+  if(usrFilter.company)list=list.filter(u=>u.company===usrFilter.company);
+  return list;
+}
+
+function buildUsersPage(){
+  const all=getFilteredUsers();
+  const active=USERS.filter(u=>u.status==="active").length;
+  const inactive=USERS.filter(u=>u.status==="inactive").length;
+  const internal=USERS.filter(u=>["platform_admin","finance_manager","ops_dispatch"].includes(u.role)).length;
+  const custUsers=USERS.filter(u=>["account_admin","account_user"].includes(u.role)).length;
+  const hasFilter=usrFilter.search||usrFilter.role||usrFilter.status||usrFilter.company;
+  const clientCompanies=[...new Set(USERS.filter(u=>u.company).map(u=>u.company))].sort();
+  const roleOpts=Object.entries(ROLES).map(([k,r])=>`<option value="${k}"${usrFilter.role===k?" selected":""}>${r.label}</option>`).join("");
+  const compOpts=clientCompanies.map(c=>`<option value="${c}"${usrFilter.company===c?" selected":""}>${c}</option>`).join("");
+
+  // Role breakdown pills for KPI
+  const roleCounts=Object.keys(ROLES).map(k=>{
+    const cnt=USERS.filter(u=>u.role===k).length;
+    const r=ROLES[k];
+    return `<div onclick="usrFilter.role=usrFilter.role==='${k}'?'':'${k}';buildUsersPage()" style="flex:1;background:${usrFilter.role===k?r.color+"33":"#0F172A"};border:1px solid ${r.color}44;border-radius:10px;padding:10px 14px;cursor:pointer;transition:all .2s;text-align:center;">
+      <div style="font-size:11px;color:${r.color};font-weight:700;margin-bottom:4px;">${r.label}</div>
+      <div style="font-size:22px;font-weight:800;color:${r.color};">${cnt}</div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("page-content").innerHTML=`
+  <!-- KPI strip -->
+  <div class="usr-kpi-row">
+    <div class="usr-kpi"><div class="usr-kpi-label">Total Users</div><div class="usr-kpi-value" style="color:#F1F5F9;">${USERS.length}</div><div class="usr-kpi-sub" style="color:#64748B;">Across all roles</div></div>
+    <div class="usr-kpi" onclick="usrFilter.status=usrFilter.status==='active'?'':'active';buildUsersPage()"><div class="usr-kpi-label">Active</div><div class="usr-kpi-value" style="color:#22C55E;">${active}</div><div class="usr-kpi-sub" style="color:#22C55E;">Can log in</div></div>
+    <div class="usr-kpi" onclick="usrFilter.status=usrFilter.status==='inactive'?'':'inactive';buildUsersPage()"><div class="usr-kpi-label">Inactive</div><div class="usr-kpi-value" style="color:#64748B;">${inactive}</div><div class="usr-kpi-sub" style="color:#64748B;">Access suspended</div></div>
+    <div class="usr-kpi"><div class="usr-kpi-label">Internal Users</div><div class="usr-kpi-value" style="color:#6C63FF;">${internal}</div><div class="usr-kpi-sub" style="color:#64748B;">Atripco / Swift staff</div></div>
+    <div class="usr-kpi"><div class="usr-kpi-label">Customer Users</div><div class="usr-kpi-value" style="color:#F59E0B;">${custUsers}</div><div class="usr-kpi-sub" style="color:#64748B;">Across all companies</div></div>
+  </div>
+
+  <!-- Role breakdown -->
+  <div style="background:#1E293B;border-radius:14px;border:1px solid #334155;padding:16px 18px;margin-bottom:16px;">
+    <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">Filter by Role</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">${roleCounts}</div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar-wrap" style="margin-bottom:14px;">
+    <input class="filter-search" style="flex:2;min-width:220px;" placeholder="🔍  Name, email, user ID, company…" value="${usrFilter.search}" oninput="usrFilter.search=this.value;buildUsersPage()"/>
+    <div class="filter-divider"></div>
+    <select class="fsel" onchange="usrFilter.status=this.value;buildUsersPage()">
+      <option value="">All Statuses</option>
+      <option value="active"${usrFilter.status==="active"?" selected":""}>Active</option>
+      <option value="inactive"${usrFilter.status==="inactive"?" selected":""}>Inactive</option>
+    </select>
+    <select class="fsel" onchange="usrFilter.company=this.value;buildUsersPage()">
+      <option value="">All Companies</option>${compOpts}
+    </select>
+    ${hasFilter?`<button class="btn-reset" onclick="usrFilter={search:'',role:'',status:'',company:''};buildUsersPage()">↺ Reset</button>`:""}
+    <span style="font-size:12px;color:#64748B;">${all.length} of ${USERS.length} users</span>
+  </div>
+
+  <!-- Table -->
+  <div class="tbl-outer">
+    <div class="tbl-header">
+      <div style="font-size:13px;color:#64748B;"><strong>${all.length}</strong> user${all.length!==1?"s":""} shown${hasFilter?" (filtered)":""}</div>
+    </div>
+    <div class="tbl-scroll">
+    ${all.length===0?`<div class="empty-state">No users match your filters.</div>`:`
+    <table class="data-table" style="min-width:980px;">
+      <thead><tr>
+        <th>User</th><th>User ID</th><th>Email</th><th>Phone</th>
+        <th>Role</th><th>Company</th><th>Status</th><th>Last Login</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${all.map(u=>userRowHTML(u)).join("")}</tbody>
+    </table>`}
+    </div>
+  </div>`;
+}
+
+function userRowHTML(u){
+  const r=ROLES[u.role];
+  const initials=(u.fname[0]+(u.lname[0]||"")).toUpperCase();
+  const isInternal=["platform_admin","finance_manager","ops_dispatch"].includes(u.role);
+  return `<tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="usr-avatar" style="background:${r.color}22;color:${r.color};">${initials}</div>
+        <div>
+          <div style="font-weight:700;">${u.fname} ${u.lname}</div>
+          <div style="font-size:11px;color:#64748B;margin-top:1px;">Added ${u.createdOn}</div>
+        </div>
+      </div>
+    </td>
+    <td style="font-family:monospace;color:#6C63FF;font-size:12px;">${u.id}</td>
+    <td style="font-size:12px;color:#94A3B8;">${u.email}</td>
+    <td style="font-size:12px;color:#94A3B8;">${u.phone||"—"}</td>
+    <td><span class="role-badge" style="background:${r.color}22;color:${r.color};border:1px solid ${r.color}44;">${r.label}</span></td>
+    <td>
+      ${isInternal
+        ?`<span style="background:#334155;color:#94A3B8;border-radius:6px;padding:2px 9px;font-size:11px;font-weight:600;">Internal</span>`
+        :u.company?`<span style="background:#6C63FF15;color:#A78BFA;border:1px solid #6C63FF33;border-radius:6px;padding:2px 9px;font-size:11px;font-weight:600;">${u.company}</span>`:`<span style="color:#64748B;font-size:12px;">—</span>`}
+    </td>
+    <td><span class="usr-status-${u.status}">${u.status==="active"?"● Active":"● Inactive"}</span></td>
+    <td style="font-size:12px;color:#64748B;">${u.lastLogin}</td>
+    <td>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-view-inv" onclick="openEditUser('${u.id}')">✏ Edit</button>
+        ${u.status==="active"
+          ?`<button class="btn-dl-inv" style="color:#EF4444;" onclick="openDeactivate('${u.id}','deactivate')">Deactivate</button>`
+          :u.role!=="platform_admin"?`<button class="btn-dl-inv" style="color:#22C55E;" onclick="openDeactivate('${u.id}','reactivate')">Reactivate</button>`:""}
+      </div>
+    </td>
+  </tr>`;
+}
+
+function selectUserRole(role){
+  selectedUserRole=role;
+  const r=ROLES[role];
+  document.querySelectorAll(".role-pill-opt").forEach(el=>{
+    const isSelected=el.dataset.role===role;
+    el.classList.toggle("selected",isSelected);
+    el.style.background=isSelected?ROLES[el.dataset.role].color:"#0F172A";
+    el.style.color=isSelected?"#fff":"#94A3B8";
+  });
+  const desc=document.getElementById("usr-role-desc");
+  desc.style.display="block";
+  desc.innerHTML=`<strong style="color:${r.color};">${r.label}:</strong> ${r.desc}`;
+  // Show company selector only for customer roles
+  const isCustomer=["account_admin","account_user"].includes(role);
+  document.getElementById("usr-company-wrap").style.display=isCustomer?"block":"none";
+}
+
+function openAddUser(){
+  selectedUserRole=null;
+  document.getElementById("usr-modal-title").textContent="👤 Add New User";
+  document.getElementById("usr-edit-id").style.display="none";
+  document.getElementById("usr-edit-id").textContent="";
+  ["usr-fname","usr-lname","usr-email","usr-phone"].forEach(k=>{document.getElementById(k).value="";});
+  document.getElementById("usr-status").value="active";
+  document.getElementById("usr-invite").value="yes";
+  document.getElementById("usr-company").value="";
+  document.getElementById("usr-company-wrap").style.display="none";
+  document.getElementById("usr-role-desc").style.display="none";
+  document.querySelectorAll(".role-pill-opt").forEach(el=>{el.classList.remove("selected");el.style.background="#0F172A";el.style.color="#94A3B8";});
+  openModal("modal-add-user");
+}
+
+function openEditUser(id){
+  const u=USERS.find(x=>x.id===id);if(!u)return;
+  selectedUserRole=u.role;
+  document.getElementById("usr-modal-title").textContent=`✏ Edit User — ${u.fname} ${u.lname}`;
+  document.getElementById("usr-edit-id").style.display="block";
+  document.getElementById("usr-edit-id").textContent=id;
+  document.getElementById("usr-fname").value=u.fname;
+  document.getElementById("usr-lname").value=u.lname;
+  document.getElementById("usr-email").value=u.email;
+  document.getElementById("usr-phone").value=u.phone||"";
+  document.getElementById("usr-status").value=u.status;
+  document.getElementById("usr-invite").value="no";
+  document.getElementById("usr-company").value=u.company||"";
+  selectUserRole(u.role);
+  openModal("modal-add-user");
+}
+
+function submitAddUser(){
+  const fname=document.getElementById("usr-fname").value.trim();
+  const lname=document.getElementById("usr-lname").value.trim();
+  const email=document.getElementById("usr-email").value.trim();
+  const phone=document.getElementById("usr-phone").value.trim();
+  const status=document.getElementById("usr-status").value;
+  const company=document.getElementById("usr-company").value;
+  const isCustomer=selectedUserRole&&["account_admin","account_user"].includes(selectedUserRole);
+  if(!fname||!lname||!email||!selectedUserRole||(isCustomer&&!company)){alert("Please fill all required fields and select a role.");return;}
+  const editId=document.getElementById("usr-edit-id").textContent;
+  if(editId){
+    const u=USERS.find(x=>x.id===editId);
+    if(u){Object.assign(u,{fname,lname,email,phone,role:selectedUserRole,company:isCustomer?company:null,status});}
+  } else {
+    const newId="USR-"+String(USERS.length+1).padStart(3,"0");
+    USERS.push({id:newId,fname,lname,email,phone,role:selectedUserRole,company:isCustomer?company:null,status,lastLogin:"Never",createdOn:new Date().toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})});
+  }
+  closeModal("modal-add-user");
+  buildUsersPage();
+}
+
+function openDeactivate(id,action){
+  pendingDeactivateId={id,action};
+  const u=USERS.find(x=>x.id===id);if(!u)return;
+  const isDeact=action==="deactivate";
+  document.getElementById("deact-title").textContent=isDeact?`Deactivate ${u.fname} ${u.lname}`:`Reactivate ${u.fname} ${u.lname}`;
+  document.getElementById("deact-desc").textContent=isDeact?`You are about to deactivate ${u.fname} ${u.lname} (${u.email}). They will immediately lose access to the platform. This can be reversed at any time.`:`You are about to reactivate ${u.fname} ${u.lname} (${u.email}). They will regain access based on their assigned role.`;
+  document.getElementById("deact-reason").value="";
+  document.getElementById("deact-btn").textContent=isDeact?"Deactivate User":"Reactivate User";
+  document.getElementById("deact-btn").style.background=isDeact?"#EF4444":"#22C55E";
+  openModal("modal-deactivate-user");
+}
+
+function submitDeactivateUser(){
+  const reason=document.getElementById("deact-reason").value.trim();
+  if(!reason){document.getElementById("deact-reason").style.borderColor="#EF4444";return;}
+  if(pendingDeactivateId){
+    const u=USERS.find(x=>x.id===pendingDeactivateId.id);
+    if(u) u.status=pendingDeactivateId.action==="deactivate"?"inactive":"active";
+  }
+  closeModal("modal-deactivate-user");
+  buildUsersPage();
+}
+
+buildSidebar();
+populateDashModals();
+navigate("dashboard");
+</script>
+</body>
+</html>
